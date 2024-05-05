@@ -1,0 +1,19 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  liquibase:
+    url: jdbc:postgresql://localhost:${datasource.port}/${datasource.database}
+    user: ${datasource.username}
+    password: ${datasource.password}
+    change-log: classpath:db/changelog.xml
+  r2dbc:
+    url: r2dbc:postgresql://localhost:${datasource.port}/${datasource.database}
+    username: ${datasource.username}
+    password: ${datasource.password}
+
+datasource:
+  host: localhost
+  port: 5432
+  username: user
+  password: pass
+  database: energy_simulator

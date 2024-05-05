@@ -1,0 +1,44 @@
+version: '2'
+services:
+  database:
+    image: "postgres"
+    ports:
+      - 5432:5432
+    env_file:
+      - database.env
+    volumes:
+      - database-data:/var/lib/postgresql/data/
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - http.cors.enabled=true
+      - http.cors.allow-origin='http://localhost:8081'
+    volumes:
+      - energy-simulation-es-data:/usr/share/elasticsearch/data
+    ports:
+      - '9200:9200'
+
+  elasticvue:
+    image: cars10/elasticvue:latest
+    ports:
+      - '8081:8080'
+
+  kibana:
+    depends_on:
+      - elasticsearch
+    image: docker.elastic.co/kibana/kibana:8.13.0
+    ports:
+      - '5601:5601'
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+
+volumes:
+  database-data:
+    driver: local
+  energy-simulation-es-data:
+    driver: local
