@@ -8,9 +8,15 @@
             <column name="id" type="BIGSERIAL" autoIncrement="true">
                 <constraints primaryKey="true" primaryKeyName="power_consumption_pk"/>
             </column>
-            <column name="date_time" type="datetime"/>
-            <column name="amount_consumed" type="bigint"/>
-            <column name="rate" type="varchar(50)"/>
+            <column name="date_time" type="datetime">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="amount_consumed" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rate" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 
@@ -19,8 +25,12 @@
             <column name="id" type="BIGSERIAL" autoIncrement="true">
                 <constraints primaryKey="true" primaryKeyName="gas_consumption_pk"/>
             </column>
-            <column name="date_time" type="datetime"/>
-            <column name="amount_consumed" type="bigint"/>
+            <column name="date_time" type="datetime">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="amount_consumed" type="bigint">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 
@@ -29,9 +39,15 @@
             <column name="id" type="BIGSERIAL" autoIncrement="true">
                 <constraints primaryKey="true" primaryKeyName="raw_csv_data_power_pk"/>
             </column>
-            <column name="date_time" type="datetime"/>
-            <column name="t1" type="bigint"/>
-            <column name="t2" type="bigint"/>
+            <column name="date_time" type="datetime">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="t1" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="t2" type="bigint">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 
@@ -40,8 +56,12 @@
             <column name="id" type="BIGSERIAL" autoIncrement="true">
                 <constraints primaryKey="true" primaryKeyName="raw_csv_data_gas_pk"/>
             </column>
-            <column name="date_time" type="datetime"/>
-            <column name="meter_reading" type="bigint"/>
+            <column name="date_time" type="datetime">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="meter_reading" type="bigint">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 

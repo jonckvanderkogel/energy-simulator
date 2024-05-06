@@ -24,7 +24,9 @@ private fun gasCSVParser(
     )
 }
 
-suspend fun gasFlow(csvInputStream: InputStream): Flow<GasConsumption> {
+suspend fun gasFlow(
+    csvInputStream: InputStream
+): Flow<GasConsumption> {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
     val gasCSVParser = gasCSVParser(formatter)
 

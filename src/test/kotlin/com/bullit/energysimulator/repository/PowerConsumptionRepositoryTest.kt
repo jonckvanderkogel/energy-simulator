@@ -5,6 +5,7 @@ import com.bullit.energysimulator.PowerConsumption
 import com.bullit.energysimulator.Rate.T1
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.springframework.boot.test.context.SpringBootTest
@@ -28,7 +29,8 @@ class PowerConsumptionRepositoryTest(
             powerConsumptionRepository.savePowerConsumption(powerConsumption)
         }
 
-        assertEquals(5L, powerConsumptionEntity?.amountConsumed)
+        assertTrue(powerConsumptionEntity.isRight())
+        assertEquals(5L, powerConsumptionEntity.getOrNull()?.amountConsumed)
     }
 
     @Order(2)

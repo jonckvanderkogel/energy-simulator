@@ -1,4 +1,3 @@
-version: '2'
 services:
   database:
     image: "postgres"
@@ -18,7 +17,7 @@ services:
       - http.cors.enabled=true
       - http.cors.allow-origin='http://localhost:8081'
     volumes:
-      - energy-simulation-es-data:/usr/share/elasticsearch/data
+      - es-data:/usr/share/elasticsearch/data
     ports:
       - '9200:9200'
 
@@ -40,5 +39,5 @@ services:
 volumes:
   database-data:
     driver: local
-  energy-simulation-es-data:
+  es-data:
     driver: local
