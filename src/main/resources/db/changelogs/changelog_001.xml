@@ -33,36 +33,4 @@
             </column>
         </createTable>
     </changeSet>
-
-    <changeSet id="createPowerCSVDataTable" author="jonck">
-        <createTable tableName="raw_csv_data_power">
-            <column name="id" type="BIGSERIAL" autoIncrement="true">
-                <constraints primaryKey="true" primaryKeyName="raw_csv_data_power_pk"/>
-            </column>
-            <column name="date_time" type="datetime">
-                <constraints nullable="false" unique="true"/>
-            </column>
-            <column name="t1" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="t2" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-    </changeSet>
-
-    <changeSet id="createGasCSVDataTable" author="jonck">
-        <createTable tableName="raw_csv_data_gas">
-            <column name="id" type="BIGSERIAL" autoIncrement="true">
-                <constraints primaryKey="true" primaryKeyName="raw_csv_data_gas_pk"/>
-            </column>
-            <column name="date_time" type="datetime">
-                <constraints nullable="false" unique="true"/>
-            </column>
-            <column name="meter_reading" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-    </changeSet>
-
 </databaseChangeLog>

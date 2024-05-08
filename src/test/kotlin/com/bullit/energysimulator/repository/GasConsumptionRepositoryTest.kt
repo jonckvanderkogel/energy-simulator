@@ -2,8 +2,6 @@ package com.bullit.energysimulator.repository
 
 import com.bullit.energysimulator.AbstractIntegrationTest
 import com.bullit.energysimulator.GasConsumption
-import com.bullit.energysimulator.PowerConsumption
-import com.bullit.energysimulator.Rate.T1
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue

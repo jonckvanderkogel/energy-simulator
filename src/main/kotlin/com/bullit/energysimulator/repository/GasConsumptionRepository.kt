@@ -2,6 +2,7 @@ package com.bullit.energysimulator.repository
 
 import arrow.core.Either
 import com.bullit.energysimulator.GasConsumption
+import com.bullit.energysimulator.GasConsumptionEntity
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
 import com.bullit.energysimulator.errorhandling.DatabaseInteractionError
 import com.bullit.energysimulator.repository.ReflectionUtil.Companion.deserializeToPojo

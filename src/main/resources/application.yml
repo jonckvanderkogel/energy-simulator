@@ -17,3 +17,6 @@ datasource:
   username: user
   password: pass
   database: energy_simulator
+
+elasticsearch:
+  url: localhost:9200
