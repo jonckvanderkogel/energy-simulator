@@ -8,11 +8,12 @@ import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 import org.springframework.data.relational.core.mapping.Table
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
 
 interface DbEntity
-interface EsEntity
+interface EsEntity {
+    val dateTime: LocalDateTime
+    fun toDomain(): Consumption
+}
 
 @Table("power_consumption")
 data class PowerConsumptionEntity(
@@ -23,7 +24,7 @@ data class PowerConsumptionEntity(
 ) : DbEntity
 
 fun PowerConsumptionEntity.toEs(): ElasticPowerConsumptionEntity =
-    ElasticPowerConsumptionEntity(this.dateTime.atZone(ZoneId.systemDefault()), this.amountConsumed, this.rate)
+    ElasticPowerConsumptionEntity(this.dateTime, this.amountConsumed, this.rate)
 
 @Table("gas_consumption")
 data class GasConsumptionEntity(
@@ -33,21 +34,28 @@ data class GasConsumptionEntity(
 ) : DbEntity
 
 fun GasConsumptionEntity.toEs(): ElasticGasConsumptionEntity =
-    ElasticGasConsumptionEntity(this.dateTime.atZone(ZoneId.systemDefault()), this.amountConsumed)
+    ElasticGasConsumptionEntity(this.dateTime, this.amountConsumed)
 
-@Document(indexName = "power_consumption")
+@Document(indexName = "power_consumption", createIndex = true)
 data class ElasticPowerConsumptionEntity(
-    @Field(type = FieldType.Date, format = [DateFormat.date_time])
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
-    val dateTime: ZonedDateTime,
+    @Field(type = FieldType.Date, format = [DateFormat.date_hour_minute_second])
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss")
+    override val dateTime: LocalDateTime,
+    @Field(type = FieldType.Long)
     val powerAmountConsumed: Long,
+    @Field(type = FieldType.Keyword)
     val rate: Rate
-) : EsEntity
+) : EsEntity {
+    override fun toDomain(): Consumption = PowerConsumption(this.dateTime, powerAmountConsumed, rate)
+}
 
-@Document(indexName = "gas_consumption")
+@Document(indexName = "gas_consumption", createIndex = true)
 data class ElasticGasConsumptionEntity(
-    @Field(type = FieldType.Date, format = [DateFormat.date_time])
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
-    val dateTime: ZonedDateTime,
+    @Field(type = FieldType.Date, format = [DateFormat.date_hour_minute_second])
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss")
+    override val dateTime: LocalDateTime,
+    @Field(type = FieldType.Long)
     val gasAmountConsumed: Long
-) : EsEntity
+) : EsEntity {
+    override fun toDomain(): Consumption = GasConsumption(this.dateTime, gasAmountConsumed)
+}

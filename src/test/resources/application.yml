@@ -8,6 +8,3 @@ logging:
   level:
     io.r2dbc.postgresql.QUERY: DEBUG
     io.r2dbc.postgresql.PARAM: DEBUG
-
-elasticsearch:
-  url: localhost:9200

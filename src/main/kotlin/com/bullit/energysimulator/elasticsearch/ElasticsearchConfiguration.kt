@@ -21,4 +21,9 @@ class ElasticsearchConfiguration(
     fun elasticsearchService(
         ops: ReactiveElasticsearchOperations
     ): ElasticsearchService = ElasticsearchService(ops)
+
+    @Bean
+    fun elasticIndices(
+        ops: ReactiveElasticsearchOperations
+    ): ElasticIndices = ElasticIndices(ops)
 }

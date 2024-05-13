@@ -13,6 +13,7 @@ private fun powerConsumptionCalculator(): ConsumptionCalculator<RawCSVDataPower,
     ConsumptionCalculator { previousRawData, newRawData ->
         previousRawData?.let { csvDataPower ->
             when {
+                newRawData.t1 > csvDataPower.t1 && newRawData.t2 > csvDataPower.t2 -> newRawData.t1 - csvDataPower.t1 + newRawData.t2 - csvDataPower.t2 to Rate.T1
                 newRawData.t1 > csvDataPower.t1 -> newRawData.t1 - csvDataPower.t1 to Rate.T1
                 newRawData.t2 > csvDataPower.t2 -> newRawData.t2 - csvDataPower.t2 to Rate.T2
                 else -> null

@@ -52,3 +52,7 @@ class NoResponseError() : AbstractApplicationError(
     message = "No response for request"
 )
 
+class MissingArgumentError(argument: String) : AbstractApplicationError(
+    message = "$argument is missing but is required"
+)
+

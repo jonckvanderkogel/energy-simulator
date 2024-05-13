@@ -1,24 +1,30 @@
 package com.bullit.energysimulator.controller
 
 import arrow.core.Either
-import arrow.core.flatMap
+import arrow.core.raise.either
 import com.bullit.energysimulator.*
 import com.bullit.energysimulator.csv.gasFlow
 import com.bullit.energysimulator.csv.powerFlow
 import com.bullit.energysimulator.elasticsearch.ElasticsearchService
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
+import com.bullit.energysimulator.errorhandling.MissingArgumentError
 import com.bullit.energysimulator.errorhandling.joinMessages
 import com.bullit.energysimulator.repository.GasConsumptionRepository
 import com.bullit.energysimulator.repository.PowerConsumptionRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.map
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyAndAwait
+import org.springframework.web.reactive.function.server.bodyValueAndAwait
 import java.io.InputStream
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Configuration
 class HandlerConfiguration {
@@ -33,7 +39,7 @@ class HandlerConfiguration {
             ::powerFlow,
             powerConsumptionRepository::savePowerConsumption,
             PowerConsumptionEntity::toEs,
-            elasticsearchService::savePowerConsumption
+            elasticsearchService::saveConsumption
         )
     }
 
@@ -48,9 +54,49 @@ class HandlerConfiguration {
             ::gasFlow,
             gasConsumptionRepository::saveGasConsumption,
             GasConsumptionEntity::toEs,
-            elasticsearchService::saveGasConsumption
+            elasticsearchService::saveConsumption
         )
     }
+
+    @Bean
+    fun searchPower(
+        elasticsearchService: ElasticsearchService
+    ): SearchHandler<ElasticPowerConsumptionEntity> = SearchHandler { request ->
+        either {
+            val gte = request.queryParam("gte")
+                .map { LocalDateTime.parse(it, DateTimeFormatter.ISO_LOCAL_DATE_TIME) }
+                .toEither { MissingArgumentError("gte") }.bind()
+
+            val lte = request.queryParam("lte")
+                .map { LocalDateTime.parse(it, DateTimeFormatter.ISO_LOCAL_DATE_TIME) }
+                .toEither { MissingArgumentError("lte") }.bind()
+
+            gte to lte
+        }
+            .map { (gte, lte) ->
+                elasticsearchService.searchByDateRange<ElasticPowerConsumptionEntity>(
+                    gte,
+                    lte,
+                )
+            }
+            .fold(
+                ifLeft = { left ->
+                    ServerResponse
+                        .badRequest()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValueAndAwait(left.joinMessages())
+                },
+                ifRight = {
+                    ServerResponse.ok().bodyAndAwait(
+                        it
+                    )
+                }
+            )
+    }
+}
+
+fun interface SearchHandler<T: EsEntity> {
+    suspend fun search(request: ServerRequest): ServerResponse
 }
 
 abstract class RouteHandler<T : Consumption, R : DbEntity, S : EsEntity>(
@@ -60,22 +106,28 @@ abstract class RouteHandler<T : Consumption, R : DbEntity, S : EsEntity>(
     private val transformFun: R.() -> S,
     private val esSave: suspend (S) -> Either<ApplicationErrors, S>
 ) {
+    /*
+    The Kotlin compiler wrongly shows that the request arg is not needed here.
+    Spring definitely requires it.
+     */
     suspend fun handleFlow(request: ServerRequest): ServerResponse =
-        ServerResponse.ok().bodyAndAwait(
+        ServerResponse.ok().bodyValueAndAwait(
             flow(inputStream)
                 .map {
-                    dbSave(it)
-                        .flatMap { dbEntity ->
-                            esSave(dbEntity.transformFun())
-                        }
+                    either {
+                        val dbEntity = dbSave(it).bind()
+                        val esEntity = esSave(dbEntity.transformFun()).bind()
+                        esEntity
+                    }
                 }
-                .map { either ->
+                .fold(HandlerOutput()) { acc, either ->
                     either.fold(
                         ifLeft = { errors ->
-                            ErrorResponse(errors.joinMessages(), HttpStatus.BAD_REQUEST.value())
+                            acc.addError(ErrorResponse(errors.joinMessages(), HttpStatus.BAD_REQUEST.value()))
                         },
-                        ifRight = {
-                            it
+                        ifRight = { esConsumption ->
+                            val consumption = esConsumption.toDomain()
+                            acc.addConsumption(consumption)
                         }
                     )
                 }
@@ -108,3 +160,49 @@ data class ErrorResponse(
     val error: String = "Bad Request", // You can make this more dynamic if needed
     val timestamp: Long = System.currentTimeMillis()
 )
+
+data class HandlerOutput(
+    val accumulatedConsumptions: List<AccumulatedConsumption> = emptyList(),
+    val errors: List<ErrorResponse> = emptyList()
+) {
+    fun addError(errorResponse: ErrorResponse): HandlerOutput =
+        HandlerOutput(this.accumulatedConsumptions, this.errors + errorResponse)
+
+    fun addConsumption(consumption: Consumption): HandlerOutput {
+        return if (accumulatedConsumptions.lastDateYearSame(consumption)) {
+            HandlerOutput(accumulatedConsumptions.addConsumption(consumption))
+        } else {
+            val addedConsumption = AccumulatedConsumption(
+                consumption.dateTime.monthValue,
+                consumption.dateTime.year,
+                consumption.amountConsumed
+            )
+            HandlerOutput(accumulatedConsumptions + addedConsumption)
+        }
+    }
+}
+
+private fun List<AccumulatedConsumption>.lastDateYearSame(consumption: Consumption): Boolean =
+    if (this.isNotEmpty()) {
+        val last = this.last()
+        last.dateYearSame(consumption)
+    } else {
+        false
+    }
+
+private fun List<AccumulatedConsumption>.addConsumption(consumption: Consumption): List<AccumulatedConsumption> {
+    val addedConsumption = this.last().addConsumption(consumption)
+    return this.dropLast(1) + addedConsumption
+}
+
+data class AccumulatedConsumption(
+    val month: Int, // from 1 to 12 for each month
+    val year: Int,
+    val totalConsumption: Long
+) {
+    fun dateYearSame(consumption: Consumption): Boolean =
+        this.month == consumption.dateTime.monthValue && this.year == consumption.dateTime.year
+
+    fun addConsumption(consumption: Consumption): AccumulatedConsumption =
+        AccumulatedConsumption(this.month, this.year, this.totalConsumption + consumption.amountConsumed)
+}

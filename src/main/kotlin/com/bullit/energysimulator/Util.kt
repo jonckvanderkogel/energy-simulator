@@ -3,11 +3,13 @@ package com.bullit.energysimulator
 import arrow.core.*
 import com.bullit.energysimulator.errorhandling.AbstractApplicationError
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
+import com.bullit.energysimulator.errorhandling.MissingArgumentError
 import com.bullit.energysimulator.errorhandling.NoResponseError
 import kotlinx.coroutines.reactive.awaitFirstOrElse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import reactor.core.publisher.Mono
+import java.util.Optional
 
 inline fun <reified T> T.logger(): Logger = LoggerFactory.getLogger(T::class.java)
 
@@ -20,6 +22,13 @@ suspend inline fun <reified T> Mono<T>.toEither(crossinline errorFun: (throwable
                 else -> NoResponseError().leftNel()
             }
         }
+
+fun <T> Optional<T>.toEither(errorFun: () -> MissingArgumentError): Either<ApplicationErrors, T> =
+    if (isPresent) {
+        this.get().right()
+    } else {
+        errorFun().leftNel()
+    }
 
 fun <T> List<Either<ApplicationErrors, T>>.invert(): Either<ApplicationErrors, List<T>> =
     fold(

@@ -5,6 +5,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.elasticsearch.ElasticsearchContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 
@@ -18,6 +19,13 @@ abstract class AbstractIntegrationTest() {
         @Container
         val postgres = PostgreSQLContainer("postgres:16.2")
 
+        @Container
+        val elastic = ElasticsearchContainer("elasticsearch:8.13.0").apply {
+            // Set environment variables if required, for example:
+            withEnv("discovery.type", "single-node")
+            withEnv("xpack.security.enabled", "false")
+        }
+
         @JvmStatic
         @DynamicPropertySource
         fun registerPostgresProperties(registry: DynamicPropertyRegistry) {
@@ -25,12 +33,14 @@ abstract class AbstractIntegrationTest() {
             logger.info("Username: ${postgres.username}")
             logger.info("Password: ${postgres.password}")
             logger.info("Database: ${postgres.databaseName}")
+            logger.info("Elastic port: ${ elastic.firstMappedPort}")
             registry.add("spring.r2dbc.url") { "r2dbc:postgresql://localhost:${postgres.firstMappedPort}/${postgres.databaseName}" }
             registry.add("spring.r2dbc.username") { postgres.username }
             registry.add("spring.r2dbc.password") { postgres.password }
             registry.add("spring.liquibase.url") { "jdbc:postgresql://localhost:${postgres.firstMappedPort}/${postgres.databaseName}" }
             registry.add("spring.liquibase.user") { postgres.username }
             registry.add("spring.liquibase.password") { postgres.password }
+            registry.add("elasticsearch.url") { "localhost:${elastic.firstMappedPort}"}
         }
     }
 }
