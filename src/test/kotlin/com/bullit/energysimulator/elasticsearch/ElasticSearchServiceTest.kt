@@ -4,7 +4,6 @@ import com.bullit.energysimulator.AbstractIntegrationTest
 import com.bullit.energysimulator.ElasticPowerConsumptionEntity
 import com.bullit.energysimulator.Rate
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.*
