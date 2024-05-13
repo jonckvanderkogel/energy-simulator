@@ -21,7 +21,6 @@ abstract class AbstractIntegrationTest() {
 
         @Container
         val elastic = ElasticsearchContainer("elasticsearch:8.13.0").apply {
-            // Set environment variables if required, for example:
             withEnv("discovery.type", "single-node")
             withEnv("xpack.security.enabled", "false")
         }
