@@ -46,6 +46,12 @@ class ElasticSearchServiceTest(
     @Order(2)
     @Test
     fun `should fetch power consumption`() {
+        /*
+        We need to refresh the index before doing the search. Elastic refreshes the index
+        asynchronously so if you run this test directly after the write operation chances
+        are you will not get a hit. By manually refreshing the index you force this process
+        and now you are ensured of getting your search results.
+         */
         runBlocking {
             ops
                 .indexOps(ElasticPowerConsumptionEntity::class.java)
