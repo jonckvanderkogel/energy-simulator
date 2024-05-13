@@ -95,7 +95,7 @@ class HandlerConfiguration {
     }
 }
 
-fun interface SearchHandler<T: EsEntity> {
+fun interface SearchHandler<T : EsEntity> {
     suspend fun search(request: ServerRequest): ServerResponse
 }
 
@@ -168,8 +168,8 @@ data class HandlerOutput(
     fun addError(errorResponse: ErrorResponse): HandlerOutput =
         HandlerOutput(this.accumulatedConsumptions, this.errors + errorResponse)
 
-    fun addConsumption(consumption: Consumption): HandlerOutput {
-        return if (accumulatedConsumptions.lastDateYearSame(consumption)) {
+    fun addConsumption(consumption: Consumption): HandlerOutput =
+        if (accumulatedConsumptions.lastDateYearSame(consumption)) {
             HandlerOutput(accumulatedConsumptions.addConsumption(consumption))
         } else {
             val addedConsumption = AccumulatedConsumption(
@@ -179,7 +179,6 @@ data class HandlerOutput(
             )
             HandlerOutput(accumulatedConsumptions + addedConsumption)
         }
-    }
 }
 
 private fun List<AccumulatedConsumption>.lastDateYearSame(consumption: Consumption): Boolean =
