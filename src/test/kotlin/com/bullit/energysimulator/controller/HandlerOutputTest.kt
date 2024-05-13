@@ -8,6 +8,8 @@ import java.time.LocalDateTime
 class HandlerOutputTest {
     @Test
     fun `should accumulate consumptions`() {
+        val handlerOutput = HandlerOutput(errors = listOf(ErrorResponse("wrong", 400)))
+
         val consumptions = listOf(
             GasConsumption(LocalDateTime.of(2024, 3, 31, 22, 30), 1),
             GasConsumption(LocalDateTime.of(2024, 3, 31, 22, 45), 1),
@@ -23,12 +25,13 @@ class HandlerOutputTest {
         )
 
         val accumulated = consumptions
-            .fold(HandlerOutput()) { acc, consumption ->
+            .fold(handlerOutput) { acc, consumption ->
                 acc.addConsumption(consumption)
             }
 
         assertEquals(2, accumulated.accumulatedConsumptions.size)
         assertEquals(6L, accumulated.accumulatedConsumptions[0].totalConsumption)
         assertEquals(5L, accumulated.accumulatedConsumptions[1].totalConsumption)
+        assertEquals(1, accumulated.errors.size)
     }
 }

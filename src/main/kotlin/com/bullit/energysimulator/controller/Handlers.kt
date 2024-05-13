@@ -170,14 +170,14 @@ data class HandlerOutput(
 
     fun addConsumption(consumption: Consumption): HandlerOutput =
         if (accumulatedConsumptions.lastDateYearSame(consumption)) {
-            HandlerOutput(accumulatedConsumptions.addConsumption(consumption))
+            HandlerOutput(accumulatedConsumptions.addConsumption(consumption), this.errors)
         } else {
             val addedConsumption = AccumulatedConsumption(
                 consumption.dateTime.monthValue,
                 consumption.dateTime.year,
                 consumption.amountConsumed
             )
-            HandlerOutput(accumulatedConsumptions + addedConsumption)
+            HandlerOutput(accumulatedConsumptions + addedConsumption, this.errors)
         }
 }
 
