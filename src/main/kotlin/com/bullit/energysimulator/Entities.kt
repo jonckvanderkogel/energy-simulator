@@ -9,7 +9,11 @@ import org.springframework.data.elasticsearch.annotations.FieldType
 import org.springframework.data.relational.core.mapping.Table
 import java.time.LocalDateTime
 
-interface DbEntity
+interface DbEntity {
+    val dateTime: LocalDateTime
+    val amountConsumed: Long
+}
+
 interface EsEntity {
     val dateTime: LocalDateTime
     fun toDomain(): Consumption
@@ -18,8 +22,8 @@ interface EsEntity {
 @Table("power_consumption")
 data class PowerConsumptionEntity(
     @Id val id: Long,
-    val dateTime: LocalDateTime,
-    val amountConsumed: Long,
+    override val dateTime: LocalDateTime,
+    override val amountConsumed: Long,
     val rate: Rate
 ) : DbEntity
 
@@ -29,8 +33,8 @@ fun PowerConsumptionEntity.toEs(): ElasticPowerConsumptionEntity =
 @Table("gas_consumption")
 data class GasConsumptionEntity(
     @Id val id: Long,
-    val dateTime: LocalDateTime,
-    val amountConsumed: Long
+    override val dateTime: LocalDateTime,
+    override val amountConsumed: Long
 ) : DbEntity
 
 fun GasConsumptionEntity.toEs(): ElasticGasConsumptionEntity =

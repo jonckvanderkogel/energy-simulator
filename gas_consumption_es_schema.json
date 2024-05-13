@@ -9,7 +9,7 @@
     "properties": {
       "dateTime": {
         "type": "date",
-        "format": "uuuu-MM-dd'T'HH:mm:ss.SSSXXX"
+        "format": "uuuu-MM-dd'T'HH:mm:ss"
       },
       "gasAmountConsumed": {
         "type": "long"
