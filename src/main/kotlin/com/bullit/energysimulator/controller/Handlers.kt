@@ -157,7 +157,7 @@ class GasHandler(
 data class ErrorResponse(
     val message: String,
     val status: Int,
-    val error: String = "Bad Request", // You can make this more dynamic if needed
+    val error: String = "Bad Request",
     val timestamp: Long = System.currentTimeMillis()
 )
 
