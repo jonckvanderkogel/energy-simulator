@@ -20,6 +20,6 @@ class GasFlowTest {
                 }
         } ?: 0
 
-        assertEquals(178L, totalConsumption)
+        assertEquals(7L, totalConsumption)
     }
 }

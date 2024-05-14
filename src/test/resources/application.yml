@@ -8,3 +8,7 @@ logging:
   level:
     io.r2dbc.postgresql.QUERY: DEBUG
     io.r2dbc.postgresql.PARAM: DEBUG
+
+files:
+  power: power_test.csv
+  gas: gas_test.csv

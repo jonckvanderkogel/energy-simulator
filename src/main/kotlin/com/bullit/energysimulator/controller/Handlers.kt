@@ -14,6 +14,7 @@ import com.bullit.energysimulator.repository.PowerConsumptionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.map
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
@@ -31,9 +32,10 @@ class HandlerConfiguration {
     @Bean
     fun powerHandler(
         powerConsumptionRepository: PowerConsumptionRepository,
-        elasticsearchService: ElasticsearchService
+        elasticsearchService: ElasticsearchService,
+        @Value("\${files.power}") powerCsvName: String
     ): PowerHandler {
-        val inputStream = javaClass.classLoader.getResourceAsStream("P1e-2024-1-01-2024-5-01.csv")!!
+        val inputStream = javaClass.classLoader.getResourceAsStream(powerCsvName)!!
         return PowerHandler(
             inputStream,
             ::powerFlow,
@@ -46,9 +48,10 @@ class HandlerConfiguration {
     @Bean
     fun gasHandler(
         gasConsumptionRepository: GasConsumptionRepository,
-        elasticsearchService: ElasticsearchService
+        elasticsearchService: ElasticsearchService,
+        @Value("\${files.gas}") gasCsvName: String
     ): GasHandler {
-        val inputStream = javaClass.classLoader.getResourceAsStream("P1g-2024-1-01-2024-5-01.csv")!!
+        val inputStream = javaClass.classLoader.getResourceAsStream(gasCsvName)!!
         return GasHandler(
             inputStream,
             ::gasFlow,
@@ -194,13 +197,13 @@ data class ConsumptionAccumulator(
 
 }
 
-private fun ConsumptionAccumulator.toAccumulatedConsumptionDTO() =
+private fun ConsumptionAccumulator.toAccumulatedConsumptionDTO(): AccumulatedConsumptionDTO =
     AccumulatedConsumptionDTO(
         accumulatedConsumptions,
         errors
     )
 
-data class AccumulatedConsumptionDTO(
+data class AccumulatedConsumptionDTO (
     val accumulatedConsumptions: List<AccumulatedConsumption>,
     val errors: List<ErrorResponse>
 )

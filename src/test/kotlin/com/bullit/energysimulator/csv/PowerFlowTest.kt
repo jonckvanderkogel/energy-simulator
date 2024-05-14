@@ -20,6 +20,6 @@ class PowerFlowTest {
                 }
         } ?: 0
 
-        assertEquals(362L, totalConsumption)
+        assertEquals(1824L, totalConsumption)
     }
 }
