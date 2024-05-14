@@ -120,7 +120,7 @@ abstract class RouteHandler<T : Consumption, R : DbEntity, S : EsEntity>(
                         esEntity
                     }
                 }
-                .fold(HandlerOutput()) { acc, either ->
+                .fold(ConsumptionAccumulator()) { acc, either ->
                     either.fold(
                         ifLeft = { errors ->
                             acc.addError(ErrorResponse(errors.joinMessages(), HttpStatus.BAD_REQUEST.value()))
@@ -131,6 +131,8 @@ abstract class RouteHandler<T : Consumption, R : DbEntity, S : EsEntity>(
                         }
                     )
                 }
+                .compact()
+                .toAccumulatedConsumptionDTO()
         )
 }
 
@@ -161,47 +163,79 @@ data class ErrorResponse(
     val timestamp: Long = System.currentTimeMillis()
 )
 
-data class HandlerOutput(
+data class ConsumptionAccumulator(
     val accumulatedConsumptions: List<AccumulatedConsumption> = emptyList(),
-    val errors: List<ErrorResponse> = emptyList()
+    val errors: List<ErrorResponse> = emptyList(),
+    val consumptionsInSamePeriod: List<Consumption> = emptyList()
 ) {
-    fun addError(errorResponse: ErrorResponse): HandlerOutput =
-        HandlerOutput(this.accumulatedConsumptions, this.errors + errorResponse)
+    fun addError(errorResponse: ErrorResponse): ConsumptionAccumulator =
+        ConsumptionAccumulator(this.accumulatedConsumptions, this.errors + errorResponse, this.consumptionsInSamePeriod)
 
-    fun addConsumption(consumption: Consumption): HandlerOutput =
-        if (accumulatedConsumptions.lastDateYearSame(consumption)) {
-            HandlerOutput(accumulatedConsumptions.addConsumption(consumption), this.errors)
-        } else {
-            val addedConsumption = AccumulatedConsumption(
-                consumption.dateTime.monthValue,
-                consumption.dateTime.year,
-                consumption.amountConsumed
+    fun addConsumption(consumption: Consumption): ConsumptionAccumulator =
+        if (consumptionsInSamePeriod.lastMonthYearSame(consumption)) {
+            ConsumptionAccumulator(
+                this.accumulatedConsumptions,
+                this.errors,
+                this.consumptionsInSamePeriod + consumption
             )
-            HandlerOutput(accumulatedConsumptions + addedConsumption, this.errors)
+        } else {
+            ConsumptionAccumulator(
+                this.accumulatedConsumptions + consumptionsInSamePeriod.toAccumulatedConsumption(),
+                this.errors,
+                listOf(consumption)
+            )
         }
+
+    fun compact(): ConsumptionAccumulator =
+        ConsumptionAccumulator(
+            this.accumulatedConsumptions + consumptionsInSamePeriod.toAccumulatedConsumption(),
+            this.errors
+        )
+
 }
 
-private fun List<AccumulatedConsumption>.lastDateYearSame(consumption: Consumption): Boolean =
-    if (this.isNotEmpty()) {
-        val last = this.last()
-        last.dateYearSame(consumption)
+private fun ConsumptionAccumulator.toAccumulatedConsumptionDTO() =
+    AccumulatedConsumptionDTO(
+        accumulatedConsumptions,
+        errors
+    )
+
+data class AccumulatedConsumptionDTO(
+    val accumulatedConsumptions: List<AccumulatedConsumption>,
+    val errors: List<ErrorResponse>
+)
+
+private fun List<Consumption>.lastMonthYearSame(consumption: Consumption): Boolean =
+    if (isNotEmpty()) {
+        val last = last()
+        last.dateTime.sameMonthYear(consumption.dateTime)
     } else {
-        false
+        true
     }
 
-private fun List<AccumulatedConsumption>.addConsumption(consumption: Consumption): List<AccumulatedConsumption> {
-    val addedConsumption = this.last().addConsumption(consumption)
-    return this.dropLast(1) + addedConsumption
-}
+private fun List<Consumption>.total(): Long =
+    fold(0L) { acc, consumption ->
+        acc + consumption.amountConsumed
+    }
+
+private fun List<Consumption>.lastMonthYear(): Pair<Int, Int> =
+    last().dateTime.monthValue to last().dateTime.year
+
+private fun List<Consumption>.toAccumulatedConsumption(): AccumulatedConsumption =
+    lastMonthYear()
+        .let { (month, year) ->
+            AccumulatedConsumption(
+                month,
+                year,
+                total()
+            )
+        }
+
+private fun LocalDateTime.sameMonthYear(other: LocalDateTime): Boolean =
+    this.year == other.year && this.month == other.month
 
 data class AccumulatedConsumption(
     val month: Int, // from 1 to 12 for each month
     val year: Int,
     val totalConsumption: Long
-) {
-    fun dateYearSame(consumption: Consumption): Boolean =
-        this.month == consumption.dateTime.monthValue && this.year == consumption.dateTime.year
-
-    fun addConsumption(consumption: Consumption): AccumulatedConsumption =
-        AccumulatedConsumption(this.month, this.year, this.totalConsumption + consumption.amountConsumed)
-}
+)
