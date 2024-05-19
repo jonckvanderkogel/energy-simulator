@@ -48,6 +48,11 @@ class ElasticsearchInteractionError(t: Throwable) : AbstractApplicationError(
     throwable = t
 )
 
+class EasyEnergyApiInteractionError(t: Throwable) : AbstractApplicationError(
+    message = t.message ?: "Exception while interacting with EasyEnergy",
+    throwable = t
+)
+
 class NoResponseError() : AbstractApplicationError(
     message = "No response for request"
 )

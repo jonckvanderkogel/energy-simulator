@@ -24,3 +24,14 @@ elasticsearch:
 files:
   power: P1e-2024-1-01-2024-5-01.csv
   gas: P1g-2024-1-01-2024-5-01.csv
+
+contract:
+  type: FIXED
+  fixed:
+    power:
+      t1: 0.22145
+      t2: 0.20935
+    gas: 0.99179
+
+easyEnergy:
+  url: "https://mijn.easyenergy.com/nl/api/tariff"
