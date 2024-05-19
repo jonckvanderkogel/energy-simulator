@@ -10,8 +10,6 @@ import io.github.resilience4j.reactor.retry.RetryOperator
 import io.github.resilience4j.retry.RetryRegistry
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
-import org.springframework.http.codec.xml.Jaxb2XmlDecoder
-import org.springframework.web.reactive.function.client.ExchangeStrategies
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import java.time.LocalDate
@@ -24,13 +22,6 @@ class EasyEnergyClient(
     baseUrl: String
 ) {
     private val webClient = WebClient.builder()
-        .exchangeStrategies(
-            ExchangeStrategies.builder()
-                .codecs{ configure ->
-                    configure.customCodecs().register(Jaxb2XmlDecoder())
-                }
-                .build()
-        )
         .baseUrl(baseUrl)
         .build()
 

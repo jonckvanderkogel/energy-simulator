@@ -11,6 +11,7 @@ import com.github.tomakehurst.wiremock.recording.RecordSpec
 import com.github.tomakehurst.wiremock.recording.RecordingStatus
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -64,5 +65,11 @@ class EasyEnergyClientTest(
         }
         println(result.getOrNull())
         assertTrue(result.isRight())
+
+        result
+            .map {
+                assertEquals(24, it.size)
+                assertEquals(0.0000121, it[0].tariffUsage)
+            }
     }
 }
