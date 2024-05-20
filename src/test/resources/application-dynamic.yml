@@ -1,0 +1,6 @@
+spring:
+  config:
+    import: classpath:application-wiremock.yml
+
+contract:
+  type: dynamic

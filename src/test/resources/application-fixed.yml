@@ -1,0 +1,11 @@
+spring:
+  config:
+    import: classpath:application-wiremock.yml
+
+contract:
+  type: fixed
+  fixed:
+    power:
+      t1: 0.22145
+      t2: 0.20935
+    gas: 0.99179

@@ -1,9 +1,12 @@
 package com.bullit.energysimulator.contracts
 
 import arrow.core.Either
+import arrow.core.leftNel
+import arrow.core.right
 import com.bullit.energysimulator.Resilience4jConfiguration.Companion.EASY_ENERGY_CLIENT
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
 import com.bullit.energysimulator.errorhandling.EasyEnergyApiInteractionError
+import com.bullit.energysimulator.errorhandling.MissingTariffError
 import com.bullit.energysimulator.toEither
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.github.resilience4j.reactor.retry.RetryOperator
@@ -13,6 +16,7 @@ import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
@@ -38,7 +42,12 @@ class EasyEnergyClient(
             .uri(uri)
             .accept(MediaType.APPLICATION_JSON)
             .retrieve()
-            .bodyToMono(object : ParameterizedTypeReference<List<EnergyTariff>>() {})
+            .bodyToMono(object : ParameterizedTypeReference<List<EnergyTariffDTO>>() {})
+            .map { list ->
+                list.map {
+                    it.toEnergyTariff()
+                }
+            }
             .transformDeferred(RetryOperator.of(retry))
             .onErrorResume { fallback(it) }
     }
@@ -52,9 +61,20 @@ class EasyEnergyClient(
             .toEither { t -> EasyEnergyApiInteractionError(t) }
 }
 
-data class EnergyTariff(
+private data class EnergyTariffDTO(
     @JsonProperty("Timestamp") val timestamp: OffsetDateTime,
     @JsonProperty("SupplierId") val supplierId: Int,
     @JsonProperty("TariffUsage") val tariffUsage: Double,
     @JsonProperty("TariffReturn") val tariffReturn: Double
 )
+
+private fun EnergyTariffDTO.toEnergyTariff() = EnergyTariff(timestamp.toLocalDateTime(), tariffUsage, tariffReturn)
+
+data class EnergyTariff(
+    val dateTime: LocalDateTime,
+    val rateUsage: Double,
+    val rateReturn: Double
+)
+
+fun EnergyTariff?.toEither(errorFun: () -> MissingTariffError): Either<ApplicationErrors, EnergyTariff> =
+    this?.right() ?: errorFun().leftNel()

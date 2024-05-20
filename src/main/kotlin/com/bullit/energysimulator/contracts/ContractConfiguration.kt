@@ -15,7 +15,7 @@ class ContractConfiguration {
     ): EasyEnergyClient = EasyEnergyClient(retryRegistry, baseUrl)
 
     @Bean
-    @ConditionalOnProperty(name = ["contract.type"], havingValue = "FIXED")
+    @ConditionalOnProperty(name = ["contract.type"], havingValue = "fixed")
     fun fixedContract(
         @Value("\${contract.fixed.power.t1}") powerPriceT1: Double,
         @Value("\${contract.fixed.power.t2}") powerPriceT2: Double,
@@ -23,4 +23,10 @@ class ContractConfiguration {
     ): EnergyContract = FixedContract(
         powerPriceT1, powerPriceT2, gasPrice
     )
+
+    @Bean
+    @ConditionalOnProperty(name = ["contract.type"], havingValue = "dynamic")
+    fun dynamicContract(
+        easyEnergyClient: EasyEnergyClient
+    ): EnergyContract = DynamicContract(easyEnergyClient)
 }

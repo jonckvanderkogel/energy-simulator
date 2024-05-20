@@ -1,6 +1,7 @@
 package com.bullit.energysimulator.errorhandling
 
 import arrow.core.NonEmptyList
+import java.time.LocalDateTime
 
 typealias ApplicationErrors = NonEmptyList<ApplicationError>
 
@@ -61,3 +62,6 @@ class MissingArgumentError(argument: String) : AbstractApplicationError(
     message = "$argument is missing but is required"
 )
 
+class MissingTariffError(argument: LocalDateTime) : AbstractApplicationError(
+    message = "Tariff is missing for $argument"
+)

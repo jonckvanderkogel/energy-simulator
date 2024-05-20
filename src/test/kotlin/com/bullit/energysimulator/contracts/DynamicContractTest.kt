@@ -8,24 +8,26 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import java.time.LocalDate
+import org.springframework.test.context.ActiveProfiles
+import java.time.LocalDateTime
 
+@ActiveProfiles("dynamic")
 @SpringBootTest(classes = [ContractConfiguration::class, Resilience4jConfiguration::class, WireMockProxy::class])
-class EasyEnergyClientTest(
+class DynamicContractTest(
     @Autowired private val proxy: WireMockProxy,
-    @Autowired private val easyEnergyClient: EasyEnergyClient
+    @Autowired private val dynamicContract: EnergyContract
 ) : AbstractWiremockTest(proxy) {
+
     @Test
-    fun `easyEnergyClient should get dynamic energy price information`() {
+    fun `should give dynamic power price`() {
         val result = runBlocking {
-            easyEnergyClient.fetchEnergyPrices(LocalDate.of(2024, 1, 1))
+            dynamicContract.powerPrice(LocalDateTime.of(2024, 1, 1, 11, 15))
         }
         assertTrue(result.isRight())
 
         result
             .map {
-                assertEquals(24, it.size)
-                assertEquals(0.0000121, it[0].rateUsage)
+                assertEquals(0.0027104, it)
             }
     }
 }
