@@ -25,3 +25,12 @@ contract:
 ```
 mvn spring-boot:run
 ```
+
+## Run simulations
+Now run a simulation as follows:
+```
+curl "http://localhost:8080/import/power?contract=dynamic"
+curl "http://localhost:8080/import/power?contract=fixed"
+curl "http://localhost:8080/import/gas?contract=dynamic"
+curl "http://localhost:8080/import/gas?contract=fixed"
+```

@@ -33,7 +33,7 @@ interface EsEntity {
     val dateTime: LocalDateTime
     val amountConsumed: Double
     val cost: Double
-    fun toDomain(): Consumption
+    val contractType: ContractType
 }
 
 @Document(indexName = "power_consumption", createIndex = true)
@@ -46,10 +46,22 @@ data class ElasticPowerConsumptionEntity(
     @Field(type = FieldType.Keyword)
     val rate: Rate,
     @Field(type = FieldType.Double)
-    override val cost: Double
-) : EsEntity {
-    override fun toDomain(): Consumption = PowerConsumption(this.dateTime, amountConsumed, rate)
-}
+    override val cost: Double,
+    @Field(type = FieldType.Keyword)
+    override val contractType: ContractType
+) : EsEntity
+
+fun PowerConsumption.toElasticPowerConsumption(
+    cost: Double,
+    contractType: ContractType
+): ElasticPowerConsumptionEntity =
+    ElasticPowerConsumptionEntity(
+        this.dateTime,
+        this.amountConsumed,
+        this.rate,
+        cost,
+        contractType
+    )
 
 @Document(indexName = "gas_consumption", createIndex = true)
 data class ElasticGasConsumptionEntity(
@@ -59,7 +71,18 @@ data class ElasticGasConsumptionEntity(
     @Field(type = FieldType.Double)
     override val amountConsumed: Double,
     @Field(type = FieldType.Double)
-    override val cost: Double
-) : EsEntity {
-    override fun toDomain(): Consumption = GasConsumption(this.dateTime, amountConsumed)
-}
+    override val cost: Double,
+    @Field(type = FieldType.Keyword)
+    override val contractType: ContractType
+) : EsEntity
+
+fun GasConsumption.toElasticGasConsumption(
+    cost: Double,
+    contractType: ContractType
+): ElasticGasConsumptionEntity =
+    ElasticGasConsumptionEntity(
+        this.dateTime,
+        this.amountConsumed,
+        cost,
+        contractType
+    )

@@ -12,7 +12,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 
 @Testcontainers
 @ActiveProfiles(profiles = ["test"])
-abstract class AbstractIntegrationTest() {
+abstract class AbstractIntegrationTest {
     companion object {
         private val logger = LoggerFactory.getLogger(AbstractIntegrationTest::class.java)
 
@@ -32,14 +32,14 @@ abstract class AbstractIntegrationTest() {
             logger.info("Username: ${postgres.username}")
             logger.info("Password: ${postgres.password}")
             logger.info("Database: ${postgres.databaseName}")
-            logger.info("Elastic port: ${ elastic.firstMappedPort}")
+            logger.info("Elastic port: ${elastic.firstMappedPort}")
             registry.add("spring.r2dbc.url") { "r2dbc:postgresql://localhost:${postgres.firstMappedPort}/${postgres.databaseName}" }
             registry.add("spring.r2dbc.username") { postgres.username }
             registry.add("spring.r2dbc.password") { postgres.password }
             registry.add("spring.liquibase.url") { "jdbc:postgresql://localhost:${postgres.firstMappedPort}/${postgres.databaseName}" }
             registry.add("spring.liquibase.user") { postgres.username }
             registry.add("spring.liquibase.password") { postgres.password }
-            registry.add("elasticsearch.url") { "localhost:${elastic.firstMappedPort}"}
+            registry.add("elasticsearch.url") { "localhost:${elastic.firstMappedPort}" }
         }
     }
 }

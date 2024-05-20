@@ -1,5 +1,6 @@
 package com.bullit.energysimulator.contracts
 
+import com.bullit.energysimulator.AbstractWiremockTest
 import com.bullit.energysimulator.Resilience4jConfiguration
 import com.bullit.energysimulator.wiremock.WireMockProxy
 import kotlinx.coroutines.runBlocking

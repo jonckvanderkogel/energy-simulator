@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.Flow
 import java.io.InputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.math.roundToLong
 
 private fun powerConsumptionCalculator(): ConsumptionCalculator<RawCSVDataPower, PowerConsumption> =
     ConsumptionCalculator { previousRawData, newRawData ->

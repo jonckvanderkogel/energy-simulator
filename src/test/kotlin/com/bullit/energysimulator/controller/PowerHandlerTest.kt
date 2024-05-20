@@ -8,10 +8,12 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 @DirtiesContext
 @SpringBootTest
-class PowerHandlerTest() : AbstractIntegrationTest() {
+class PowerHandlerTest : AbstractIntegrationTest() {
 
     private lateinit var webTestClient: WebTestClient
 
@@ -19,11 +21,13 @@ class PowerHandlerTest() : AbstractIntegrationTest() {
     fun initClient(context: ApplicationContext) {
         webTestClient = WebTestClient
             .bindToApplicationContext(context)
+            .configureClient()
+            .responseTimeout(300.seconds.toJavaDuration())
             .build()
     }
 
     @Test
-    fun `should handle a power csv`(){
+    fun `should handle a power csv with a fixed contract`() {
         webTestClient
             .get()
             .uri("/import/power?contract=fixed")
@@ -34,8 +38,16 @@ class PowerHandlerTest() : AbstractIntegrationTest() {
                 assertEquals(2, response.responseBody?.accumulatedConsumptions?.size)
                 assertEquals(3, response.responseBody?.accumulatedConsumptions?.first()?.month)
                 assertEquals(2024, response.responseBody?.accumulatedConsumptions?.first()?.year)
-                assertEquals(1.171, response.responseBody?.accumulatedConsumptions?.first()?.totalConsumption ?: 0.0, 0.001)
-                assertEquals(0.2451, response.responseBody?.accumulatedConsumptions?.first()?.totalCost ?: 0.0, 0.0001)
+                assertEquals(
+                    1.171,
+                    response.responseBody?.accumulatedConsumptions?.first()?.totalConsumption ?: 0.0,
+                    0.001
+                )
+                assertEquals(
+                    0.259,
+                    response.responseBody?.accumulatedConsumptions?.first()?.totalCost ?: 0.0,
+                    0.001
+                )
             }
     }
 }

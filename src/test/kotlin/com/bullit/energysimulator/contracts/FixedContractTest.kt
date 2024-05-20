@@ -15,7 +15,7 @@ class FixedContractTest(
 ) {
 
     @Test
-    fun `should use t1 price to calculate cost from 7 00 to 21 59`() {
+    fun `should use t1 price when rate is T1`() {
         val result = runBlocking {
             fixedContract.calculateCost(
                 PowerConsumption(
@@ -34,13 +34,13 @@ class FixedContractTest(
     }
 
     @Test
-    fun `should use t2 price to calculate cost from 22 00 to 6 59`() {
+    fun `should use t2 price when Rate is T2`() {
         val result = runBlocking {
             fixedContract.calculateCost(
                 PowerConsumption(
                     LocalDateTime.of(2024, 1, 1, 5, 45),
                     10.0,
-                    Rate.T1
+                    Rate.T2
                 )
             )
         }

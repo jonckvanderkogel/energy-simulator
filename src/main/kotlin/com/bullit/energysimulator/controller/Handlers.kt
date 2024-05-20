@@ -3,7 +3,6 @@ package com.bullit.energysimulator.controller
 import arrow.core.Either
 import arrow.core.raise.either
 import com.bullit.energysimulator.*
-import com.bullit.energysimulator.contracts.ContractType
 import com.bullit.energysimulator.contracts.EnergyContractProvider
 import com.bullit.energysimulator.csv.gasFlow
 import com.bullit.energysimulator.csv.powerFlow
@@ -39,23 +38,14 @@ class HandlerConfiguration {
         energyContractProvider: EnergyContractProvider<Consumption>,
         @Value("\${files.power}") powerCsvName: String
     ): PowerHandler {
-        val inputStream = javaClass.classLoader.getResourceAsStream(powerCsvName)!!
         return PowerHandler(
-            inputStream,
+            powerCsvName,
             ::powerFlow,
             energyContractProvider,
-            ::powerConsumptionToElasticPowerConsumption,
+            PowerConsumption::toElasticPowerConsumption,
             elasticsearchService::saveConsumption
         )
     }
-
-    private fun powerConsumptionToElasticPowerConsumption(powerConsumption: PowerConsumption, cost: Double): ElasticPowerConsumptionEntity =
-        ElasticPowerConsumptionEntity(
-            powerConsumption.dateTime,
-            powerConsumption.amountConsumed,
-            powerConsumption.rate,
-            cost
-        )
 
     @Bean
     fun gasHandler(
@@ -64,22 +54,14 @@ class HandlerConfiguration {
         energyContractProvider: EnergyContractProvider<Consumption>,
         @Value("\${files.gas}") gasCsvName: String
     ): GasHandler {
-        val inputStream = javaClass.classLoader.getResourceAsStream(gasCsvName)!!
         return GasHandler(
-            inputStream,
+            gasCsvName,
             ::gasFlow,
             energyContractProvider,
-            ::gasConsumptionToElasticGasConsumption,
+            GasConsumption::toElasticGasConsumption,
             elasticsearchService::saveConsumption
         )
     }
-
-    private fun gasConsumptionToElasticGasConsumption(gasConsumption: GasConsumption, cost: Double): ElasticGasConsumptionEntity =
-        ElasticGasConsumptionEntity(
-            gasConsumption.dateTime,
-            gasConsumption.amountConsumed,
-            cost
-        )
 
     @Bean
     fun searchPower(
@@ -123,26 +105,22 @@ fun interface SearchHandler<S : EsEntity> {
 }
 
 abstract class RouteHandler<T : Consumption, S : EsEntity>(
-    private val inputStream: InputStream,
+    private val csvName: String,
     private val flow: suspend (InputStream) -> Flow<T>,
     private val energyContractProvider: EnergyContractProvider<Consumption>,
-    private val transformFun: T.(Double) -> S,
+    private val transformFun: T.(Double, ContractType) -> S,
     private val esSave: suspend (S) -> Either<ApplicationErrors, S>
 ) {
-    /*
-    The Kotlin compiler wrongly shows that the request arg is not needed here.
-    Spring definitely requires it.
-     */
     suspend fun handleFlow(request: ServerRequest): ServerResponse = either {
         val contractTypeParameter = request
             .queryParam("contract")
-            .getOrNull() ?: "Missing contract parameter"
+            .getOrNull() ?: "Contract parameter"
 
         val contractType = ContractType
             .parseContractTypeString(contractTypeParameter)
             .bind()
 
-        energyContractProvider(contractType)
+        contractType to energyContractProvider(contractType)
     }
         .fold(
             ifLeft = { left ->
@@ -151,13 +129,13 @@ abstract class RouteHandler<T : Consumption, S : EsEntity>(
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValueAndAwait(left.joinMessages())
             },
-            ifRight = { energyContract ->
+            ifRight = { (contractType, energyContract) ->
                 ServerResponse.ok().bodyValueAndAwait(
-                    flow(inputStream)
+                    flow( streamCsv().invoke(csvName))
                         .map {
                             either {
                                 val cost = energyContract.calculateCost(it).bind()
-                                esSave(it.transformFun(cost)).bind()
+                                esSave(it.transformFun(cost, contractType)).bind()
                             }
 
                         }
@@ -176,26 +154,30 @@ abstract class RouteHandler<T : Consumption, S : EsEntity>(
                 )
             }
         )
+
+    private fun streamCsv(): (String) -> InputStream = { csvName ->
+        javaClass.classLoader.getResourceAsStream(csvName)!!
+    }
 }
 
 class PowerHandler(
-    inputStream: InputStream,
+    powerCsvName: String,
     flow: suspend (InputStream) -> Flow<PowerConsumption>,
     energyContractProvider: EnergyContractProvider<Consumption>,
-    transformFun: (PowerConsumption, Double) -> ElasticPowerConsumptionEntity,
+    transformFun: (PowerConsumption, Double, ContractType) -> ElasticPowerConsumptionEntity,
     esSave: suspend (ElasticPowerConsumptionEntity) -> Either<ApplicationErrors, ElasticPowerConsumptionEntity>
 ) : RouteHandler<PowerConsumption, ElasticPowerConsumptionEntity>(
-    inputStream, flow, energyContractProvider, transformFun, esSave
+    powerCsvName, flow, energyContractProvider, transformFun, esSave
 )
 
 class GasHandler(
-    inputStream: InputStream,
+    gasCsvName: String,
     flow: suspend (InputStream) -> Flow<GasConsumption>,
     energyContractProvider: EnergyContractProvider<Consumption>,
-    transformFun: (GasConsumption, Double) -> ElasticGasConsumptionEntity,
+    transformFun: (GasConsumption, Double, ContractType) -> ElasticGasConsumptionEntity,
     esSave: suspend (ElasticGasConsumptionEntity) -> Either<ApplicationErrors, ElasticGasConsumptionEntity>
 ) : RouteHandler<GasConsumption, ElasticGasConsumptionEntity>(
-    inputStream, flow, energyContractProvider, transformFun, esSave
+    gasCsvName, flow, energyContractProvider, transformFun, esSave
 )
 
 data class ErrorResponse(
@@ -222,7 +204,7 @@ data class ConsumptionAccumulator(
             )
         } else {
             ConsumptionAccumulator(
-                this.accumulatedConsumptions + consumptionsInSamePeriod.toAccumulatedConsumption(),
+                this.accumulatedConsumptions.plusMaybe(consumptionsInSamePeriod.toAccumulatedConsumption()),
                 this.errors,
                 listOf(consumption)
             )
@@ -230,10 +212,18 @@ data class ConsumptionAccumulator(
 
     fun compact(): ConsumptionAccumulator =
         ConsumptionAccumulator(
-            this.accumulatedConsumptions + consumptionsInSamePeriod.toAccumulatedConsumption(),
+            this.accumulatedConsumptions.plusMaybe(consumptionsInSamePeriod.toAccumulatedConsumption()),
             this.errors
         )
 
+}
+
+fun <T> List<T>.plusMaybe(item: T?): List<T> {
+    return if (item == null) {
+        this
+    } else {
+        this.plus(item)
+    }
 }
 
 private fun ConsumptionAccumulator.toAccumulatedConsumptionDTO(): AccumulatedConsumptionDTO =
@@ -268,16 +258,20 @@ private fun List<EsEntity>.totalCost(): Double =
 private fun List<EsEntity>.lastMonthYear(): Pair<Int, Int> =
     last().dateTime.monthValue to last().dateTime.year
 
-private fun List<EsEntity>.toAccumulatedConsumption(): AccumulatedConsumption =
-    lastMonthYear()
-        .let { (month, year) ->
-            AccumulatedConsumption(
-                month,
-                year,
-                totalConsumption(),
-                totalCost()
-            )
-        }
+private fun List<EsEntity>.toAccumulatedConsumption(): AccumulatedConsumption? =
+    if (isEmpty()) {
+        null
+    } else {
+        lastMonthYear()
+            .let { (month, year) ->
+                AccumulatedConsumption(
+                    month,
+                    year,
+                    totalConsumption(),
+                    totalCost()
+                )
+            }
+    }
 
 private fun LocalDateTime.sameMonthYear(other: LocalDateTime): Boolean =
     this.year == other.year && this.month == other.month

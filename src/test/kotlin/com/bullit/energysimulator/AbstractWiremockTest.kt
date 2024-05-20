@@ -1,4 +1,4 @@
-package com.bullit.energysimulator.contracts
+package com.bullit.energysimulator
 
 import com.bullit.energysimulator.wiremock.WireMockProxy
 import com.github.tomakehurst.wiremock.WireMockServer

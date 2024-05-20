@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.Flow
 import java.io.InputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.math.roundToLong
 
 private fun gasConsumptionCalculator(): ConsumptionCalculator<RawCSVDataGas, GasConsumption> =
     ConsumptionCalculator { previousRawData, newRawData ->

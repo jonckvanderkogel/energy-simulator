@@ -1,5 +1,7 @@
 package com.bullit.energysimulator.controller
 
+import com.bullit.energysimulator.ContractType
+import com.bullit.energysimulator.ContractType.*
 import com.bullit.energysimulator.ElasticGasConsumptionEntity
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -11,61 +13,17 @@ class HandlerOutputTest {
         val consumptionAccumulator = ConsumptionAccumulator(errors = listOf(ErrorResponse("wrong", 400)))
 
         val consumptions = listOf(
-            ElasticGasConsumptionEntity(
-                LocalDateTime.of(2024, 3, 31, 22, 30),
-                1.0,
-                1.0
-            ),
-            ElasticGasConsumptionEntity(
-                LocalDateTime.of(2024, 3, 31, 22, 45),
-                1.0,
-                1.0
-            ),
-            ElasticGasConsumptionEntity(
-                LocalDateTime.of(2024, 3, 31, 23, 0),
-                1.0,
-                1.0
-            ),
-            ElasticGasConsumptionEntity(
-                LocalDateTime.of(2024, 3, 31, 23, 15),
-                1.0,
-                1.0
-            ),
-            ElasticGasConsumptionEntity(
-                LocalDateTime.of(2024, 3, 31, 23, 30),
-                1.0,
-                1.0
-            ),
-            ElasticGasConsumptionEntity(
-                LocalDateTime.of(2024, 3, 31, 23, 45),
-                1.0,
-                1.0
-            ),
-            ElasticGasConsumptionEntity(
-                LocalDateTime.of(2024, 4, 1, 0, 0),
-                1.0,
-                1.0
-            ),
-            ElasticGasConsumptionEntity(
-                LocalDateTime.of(2024, 4, 1, 0, 15),
-                1.0,
-                1.0
-            ),
-            ElasticGasConsumptionEntity(
-                LocalDateTime.of(2024, 4, 1, 0, 30),
-                1.0,
-                1.0
-            ),
-            ElasticGasConsumptionEntity(
-                LocalDateTime.of(2024, 4, 1, 0, 45),
-                1.0,
-                1.0
-            ),
-            ElasticGasConsumptionEntity(
-                LocalDateTime.of(2024, 4, 1, 1, 0),
-                1.0,
-                1.0
-            )
+            generateConsumption(LocalDateTime.of(2024, 3, 31, 22, 30)),
+            generateConsumption(LocalDateTime.of(2024, 3, 31, 22, 45)),
+            generateConsumption(LocalDateTime.of(2024, 3, 31, 23, 0)),
+            generateConsumption(LocalDateTime.of(2024, 3, 31, 23, 15)),
+            generateConsumption(LocalDateTime.of(2024, 3, 31, 23, 30)),
+            generateConsumption(LocalDateTime.of(2024, 3, 31, 23, 45)),
+            generateConsumption(LocalDateTime.of(2024, 4, 1, 0, 0)),
+            generateConsumption(LocalDateTime.of(2024, 4, 1, 0, 15)),
+            generateConsumption(LocalDateTime.of(2024, 4, 1, 0, 30)),
+            generateConsumption(LocalDateTime.of(2024, 4, 1, 0, 45)),
+            generateConsumption(LocalDateTime.of(2024, 4, 1, 1, 0))
         )
 
         val accumulated = consumptions
@@ -80,4 +38,12 @@ class HandlerOutputTest {
         assertEquals(5.0, accumulated.accumulatedConsumptions[1].totalCost)
         assertEquals(1, accumulated.errors.size)
     }
+
+    private fun generateConsumption(dateTime: LocalDateTime): ElasticGasConsumptionEntity =
+        ElasticGasConsumptionEntity(
+            dateTime,
+            1.0,
+            1.0,
+            FIXED
+        )
 }

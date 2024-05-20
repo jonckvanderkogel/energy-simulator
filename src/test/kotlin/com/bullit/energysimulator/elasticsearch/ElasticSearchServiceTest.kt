@@ -1,6 +1,10 @@
 package com.bullit.energysimulator.elasticsearch
 
-import com.bullit.energysimulator.*
+import com.bullit.energysimulator.AbstractIntegrationTest
+import com.bullit.energysimulator.ContractType.FIXED
+import com.bullit.energysimulator.ElasticGasConsumptionEntity
+import com.bullit.energysimulator.ElasticPowerConsumptionEntity
+import com.bullit.energysimulator.Rate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -30,7 +34,8 @@ class ElasticSearchServiceTest(
             LocalDateTime.of(2024, 3, 31, 22, 30),
             10.0,
             Rate.T1,
-            10.0
+            10.0,
+            FIXED
         )
 
         val persisted = runBlocking {
@@ -47,7 +52,8 @@ class ElasticSearchServiceTest(
         val consumption = ElasticGasConsumptionEntity(
             LocalDateTime.of(2024, 3, 31, 22, 30),
             10.0,
-            10.0
+            10.0,
+            FIXED
         )
 
         val persisted = runBlocking {
