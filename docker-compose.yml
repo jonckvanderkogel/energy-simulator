@@ -1,4 +1,13 @@
 services:
+  database:
+    image: "postgres"
+    ports:
+      - 5432:5432
+    env_file:
+      - database.env
+    volumes:
+      - database-data:/var/lib/postgresql/data/
+
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
     environment:
@@ -28,5 +37,7 @@ services:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
 
 volumes:
+  database-data:
+    driver: local
   es-data:
     driver: local
