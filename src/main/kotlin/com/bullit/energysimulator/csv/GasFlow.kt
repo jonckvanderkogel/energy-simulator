@@ -20,7 +20,7 @@ private fun gasCSVParser(
 ): RawCSVParser<RawCSVDataGas> = RawCSVParser { record ->
     RawCSVDataGas(
         LocalDateTime.parse(record[0], formatter),
-        (record[1].toDouble() * 1000).roundToLong()
+        record[1].toDouble()
     )
 }
 

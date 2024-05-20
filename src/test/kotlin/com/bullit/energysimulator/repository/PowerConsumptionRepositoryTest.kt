@@ -24,13 +24,13 @@ class PowerConsumptionRepositoryTest(
     @Order(1)
     @Test
     fun `should save PowerConsumption`() {
-        val powerConsumption = PowerConsumption(LocalDateTime.now(), 5L, T1)
+        val powerConsumption = PowerConsumption(LocalDateTime.now(), 5.0, T1)
         val powerConsumptionEntity = runBlocking {
             powerConsumptionRepository.savePowerConsumption(powerConsumption)
         }
 
         assertTrue(powerConsumptionEntity.isRight())
-        assertEquals(5L, powerConsumptionEntity.getOrNull()?.amountConsumed)
+        assertEquals(5.0, powerConsumptionEntity.getOrNull()?.amountConsumed)
     }
 
     @Order(2)
@@ -40,6 +40,6 @@ class PowerConsumptionRepositoryTest(
             powerConsumptionRepository.findById(1L)
         }
 
-        assertEquals(5L, powerConsumptionEntity?.amountConsumed)
+        assertEquals(5.0, powerConsumptionEntity?.amountConsumed)
     }
 }

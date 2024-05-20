@@ -1,6 +1,11 @@
 package com.bullit.energysimulator.contracts
 
+import arrow.core.Either
+import arrow.core.leftNel
+import arrow.core.right
 import com.bullit.energysimulator.Consumption
+import com.bullit.energysimulator.errorhandling.ApplicationErrors
+import com.bullit.energysimulator.errorhandling.MissingArgumentError
 import io.github.resilience4j.retry.RetryRegistry
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -44,6 +49,15 @@ class ContractConfiguration {
 
 typealias EnergyContractProvider<T> = (ContractType) -> EnergyContract<T>
 
-enum class ContractType {
-    FIXED, DYNAMIC
+enum class ContractType() {
+    FIXED, DYNAMIC;
+
+    companion object {
+        fun parseContractTypeString(contractTypeString: String): Either<ApplicationErrors, ContractType> =
+            try {
+                ContractType.valueOf(contractTypeString.uppercase()).right()
+            } catch (e: IllegalArgumentException) {
+                MissingArgumentError("ContractType: $contractTypeString does not exist").leftNel()
+            }
+    }
 }

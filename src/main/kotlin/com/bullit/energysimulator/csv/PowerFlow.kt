@@ -28,8 +28,8 @@ private fun powerCSVParser(
 ): RawCSVParser<RawCSVDataPower> = RawCSVParser { record ->
     RawCSVDataPower(
         LocalDateTime.parse(record[0], formatter),
-        (record[1].toDouble() * 1000).roundToLong(),
-        (record[2].toDouble() * 1000).roundToLong()
+        record[1].toDouble(),
+        record[2].toDouble()
     )
 }
 

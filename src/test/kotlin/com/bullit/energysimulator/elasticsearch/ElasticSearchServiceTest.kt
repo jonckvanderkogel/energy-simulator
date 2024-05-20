@@ -28,8 +28,9 @@ class ElasticSearchServiceTest(
     fun `should persist power consumption`() {
         val consumption = ElasticPowerConsumptionEntity(
             LocalDateTime.of(2024, 3, 31, 22, 30),
-            10L,
-            Rate.T1
+            10.0,
+            Rate.T1,
+            10.0
         )
 
         val persisted = runBlocking {
@@ -37,7 +38,7 @@ class ElasticSearchServiceTest(
         }
 
         assertTrue(persisted.isRight())
-        assertEquals(10L, persisted.getOrNull()?.powerAmountConsumed)
+        assertEquals(10.0, persisted.getOrNull()?.amountConsumed)
     }
 
     @Order(2)
@@ -45,7 +46,8 @@ class ElasticSearchServiceTest(
     fun `should persist gas consumption`() {
         val consumption = ElasticGasConsumptionEntity(
             LocalDateTime.of(2024, 3, 31, 22, 30),
-            10L
+            10.0,
+            10.0
         )
 
         val persisted = runBlocking {
@@ -53,7 +55,7 @@ class ElasticSearchServiceTest(
         }
 
         assertTrue(persisted.isRight())
-        assertEquals(10L, persisted.getOrNull()?.gasAmountConsumed)
+        assertEquals(10.0, persisted.getOrNull()?.amountConsumed)
     }
 
     @Order(3)
@@ -82,7 +84,7 @@ class ElasticSearchServiceTest(
         }
 
         assertNotNull(retrieved)
-        assertEquals(10L, retrieved.powerAmountConsumed)
+        assertEquals(10.0, retrieved.amountConsumed)
     }
 
     @Order(4)
@@ -111,6 +113,6 @@ class ElasticSearchServiceTest(
         }
 
         assertNotNull(retrieved)
-        assertEquals(10L, retrieved.gasAmountConsumed)
+        assertEquals(10.0, retrieved.amountConsumed)
     }
 }

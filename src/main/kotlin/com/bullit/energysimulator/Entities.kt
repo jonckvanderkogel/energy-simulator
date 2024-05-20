@@ -11,46 +11,44 @@ import java.time.LocalDateTime
 
 interface DbEntity {
     val dateTime: LocalDateTime
-    val amountConsumed: Long
-}
-
-interface EsEntity {
-    val dateTime: LocalDateTime
-    fun toDomain(): Consumption
+    val amountConsumed: Double
 }
 
 @Table("power_consumption")
 data class PowerConsumptionEntity(
     @Id val id: Long,
     override val dateTime: LocalDateTime,
-    override val amountConsumed: Long,
+    override val amountConsumed: Double,
     val rate: Rate
 ) : DbEntity
-
-fun PowerConsumptionEntity.toEs(): ElasticPowerConsumptionEntity =
-    ElasticPowerConsumptionEntity(this.dateTime, this.amountConsumed, this.rate)
 
 @Table("gas_consumption")
 data class GasConsumptionEntity(
     @Id val id: Long,
     override val dateTime: LocalDateTime,
-    override val amountConsumed: Long
+    override val amountConsumed: Double
 ) : DbEntity
 
-fun GasConsumptionEntity.toEs(): ElasticGasConsumptionEntity =
-    ElasticGasConsumptionEntity(this.dateTime, this.amountConsumed)
+interface EsEntity {
+    val dateTime: LocalDateTime
+    val amountConsumed: Double
+    val cost: Double
+    fun toDomain(): Consumption
+}
 
 @Document(indexName = "power_consumption", createIndex = true)
 data class ElasticPowerConsumptionEntity(
     @Field(type = FieldType.Date, format = [DateFormat.date_hour_minute_second])
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     override val dateTime: LocalDateTime,
-    @Field(type = FieldType.Long)
-    val powerAmountConsumed: Long,
+    @Field(type = FieldType.Double)
+    override val amountConsumed: Double,
     @Field(type = FieldType.Keyword)
-    val rate: Rate
+    val rate: Rate,
+    @Field(type = FieldType.Double)
+    override val cost: Double
 ) : EsEntity {
-    override fun toDomain(): Consumption = PowerConsumption(this.dateTime, powerAmountConsumed, rate)
+    override fun toDomain(): Consumption = PowerConsumption(this.dateTime, amountConsumed, rate)
 }
 
 @Document(indexName = "gas_consumption", createIndex = true)
@@ -58,8 +56,10 @@ data class ElasticGasConsumptionEntity(
     @Field(type = FieldType.Date, format = [DateFormat.date_hour_minute_second])
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     override val dateTime: LocalDateTime,
-    @Field(type = FieldType.Long)
-    val gasAmountConsumed: Long
+    @Field(type = FieldType.Double)
+    override val amountConsumed: Double,
+    @Field(type = FieldType.Double)
+    override val cost: Double
 ) : EsEntity {
-    override fun toDomain(): Consumption = GasConsumption(this.dateTime, gasAmountConsumed)
+    override fun toDomain(): Consumption = GasConsumption(this.dateTime, amountConsumed)
 }

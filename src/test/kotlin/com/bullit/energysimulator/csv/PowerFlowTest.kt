@@ -15,11 +15,11 @@ class PowerFlowTest {
                 ?.let {
                     powerFlow(it)
                 }
-                ?.fold(0L) { acc, consumption ->
+                ?.fold(0.0) { acc, consumption ->
                     acc + consumption.amountConsumed
                 }
-        } ?: 0
+        } ?: 0.0
 
-        assertEquals(1824L, totalConsumption)
+        assertEquals(1.824, totalConsumption, 0.0001)
     }
 }

@@ -22,7 +22,7 @@ class DynamicContractTest(
             dynamicContract.calculateCost(
                 PowerConsumption(
                     LocalDateTime.of(2024, 1, 1, 11, 15),
-                    10,
+                    10.0,
                     Rate.T1
                 )
             )
@@ -41,7 +41,7 @@ class DynamicContractTest(
             dynamicContract.calculateCost(
                 GasConsumption(
                     LocalDateTime.of(2024, 1, 1, 11, 15),
-                    10
+                    10.0
                 )
             )
         }

@@ -11,7 +11,7 @@
             <column name="date_time" type="datetime">
                 <constraints nullable="false" unique="true"/>
             </column>
-            <column name="amount_consumed" type="bigint">
+            <column name="amount_consumed" type="numeric(10,3)">
                 <constraints nullable="false"/>
             </column>
             <column name="rate" type="varchar(50)">
@@ -28,7 +28,7 @@
             <column name="date_time" type="datetime">
                 <constraints nullable="false" unique="true"/>
             </column>
-            <column name="amount_consumed" type="bigint">
+            <column name="amount_consumed" type="numeric(10,3)">
                 <constraints nullable="false"/>
             </column>
         </createTable>

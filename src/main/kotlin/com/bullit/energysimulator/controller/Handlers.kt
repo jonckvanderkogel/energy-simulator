@@ -3,6 +3,8 @@ package com.bullit.energysimulator.controller
 import arrow.core.Either
 import arrow.core.raise.either
 import com.bullit.energysimulator.*
+import com.bullit.energysimulator.contracts.ContractType
+import com.bullit.energysimulator.contracts.EnergyContractProvider
 import com.bullit.energysimulator.csv.gasFlow
 import com.bullit.energysimulator.csv.powerFlow
 import com.bullit.energysimulator.elasticsearch.ElasticsearchService
@@ -26,6 +28,7 @@ import org.springframework.web.reactive.function.server.bodyValueAndAwait
 import java.io.InputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.jvm.optionals.getOrNull
 
 @Configuration
 class HandlerConfiguration {
@@ -33,43 +36,49 @@ class HandlerConfiguration {
     fun powerHandler(
         powerConsumptionRepository: PowerConsumptionRepository,
         elasticsearchService: ElasticsearchService,
+        energyContractProvider: EnergyContractProvider<Consumption>,
         @Value("\${files.power}") powerCsvName: String
     ): PowerHandler {
         val inputStream = javaClass.classLoader.getResourceAsStream(powerCsvName)!!
         return PowerHandler(
             inputStream,
             ::powerFlow,
+            energyContractProvider,
             ::powerConsumptionToElasticPowerConsumption,
             elasticsearchService::saveConsumption
         )
     }
 
-    private fun powerConsumptionToElasticPowerConsumption(powerConsumption: PowerConsumption): ElasticPowerConsumptionEntity =
+    private fun powerConsumptionToElasticPowerConsumption(powerConsumption: PowerConsumption, cost: Double): ElasticPowerConsumptionEntity =
         ElasticPowerConsumptionEntity(
             powerConsumption.dateTime,
             powerConsumption.amountConsumed,
-            powerConsumption.rate
+            powerConsumption.rate,
+            cost
         )
 
     @Bean
     fun gasHandler(
         gasConsumptionRepository: GasConsumptionRepository,
         elasticsearchService: ElasticsearchService,
+        energyContractProvider: EnergyContractProvider<Consumption>,
         @Value("\${files.gas}") gasCsvName: String
     ): GasHandler {
         val inputStream = javaClass.classLoader.getResourceAsStream(gasCsvName)!!
         return GasHandler(
             inputStream,
             ::gasFlow,
+            energyContractProvider,
             ::gasConsumptionToElasticGasConsumption,
             elasticsearchService::saveConsumption
         )
     }
 
-    private fun gasConsumptionToElasticGasConsumption(gasConsumption: GasConsumption): ElasticGasConsumptionEntity =
+    private fun gasConsumptionToElasticGasConsumption(gasConsumption: GasConsumption, cost: Double): ElasticGasConsumptionEntity =
         ElasticGasConsumptionEntity(
             gasConsumption.dateTime,
-            gasConsumption.amountConsumed
+            gasConsumption.amountConsumed,
+            cost
         )
 
     @Bean
@@ -116,51 +125,77 @@ fun interface SearchHandler<S : EsEntity> {
 abstract class RouteHandler<T : Consumption, S : EsEntity>(
     private val inputStream: InputStream,
     private val flow: suspend (InputStream) -> Flow<T>,
-    private val transformFun: T.() -> S,
+    private val energyContractProvider: EnergyContractProvider<Consumption>,
+    private val transformFun: T.(Double) -> S,
     private val esSave: suspend (S) -> Either<ApplicationErrors, S>
 ) {
     /*
     The Kotlin compiler wrongly shows that the request arg is not needed here.
     Spring definitely requires it.
      */
-    suspend fun handleFlow(request: ServerRequest): ServerResponse =
-        ServerResponse.ok().bodyValueAndAwait(
-            flow(inputStream)
-                .map {
-                    esSave(transformFun(it))
-                }
-                .fold(ConsumptionAccumulator()) { acc, either ->
-                    either.fold(
-                        ifLeft = { errors ->
-                            acc.addError(ErrorResponse(errors.joinMessages(), HttpStatus.BAD_REQUEST.value()))
-                        },
-                        ifRight = { esConsumption ->
-                            val consumption = esConsumption.toDomain()
-                            acc.addConsumption(consumption)
+    suspend fun handleFlow(request: ServerRequest): ServerResponse = either {
+        val contractTypeParameter = request
+            .queryParam("contract")
+            .getOrNull() ?: "Missing contract parameter"
+
+        val contractType = ContractType
+            .parseContractTypeString(contractTypeParameter)
+            .bind()
+
+        energyContractProvider(contractType)
+    }
+        .fold(
+            ifLeft = { left ->
+                ServerResponse
+                    .badRequest()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValueAndAwait(left.joinMessages())
+            },
+            ifRight = { energyContract ->
+                ServerResponse.ok().bodyValueAndAwait(
+                    flow(inputStream)
+                        .map {
+                            either {
+                                val cost = energyContract.calculateCost(it).bind()
+                                esSave(it.transformFun(cost)).bind()
+                            }
+
                         }
-                    )
-                }
-                .compact()
-                .toAccumulatedConsumptionDTO()
+                        .fold(ConsumptionAccumulator()) { acc, either ->
+                            either.fold(
+                                ifLeft = { errors ->
+                                    acc.addError(ErrorResponse(errors.joinMessages(), HttpStatus.BAD_REQUEST.value()))
+                                },
+                                ifRight = {
+                                    acc.addConsumption(it)
+                                }
+                            )
+                        }
+                        .compact()
+                        .toAccumulatedConsumptionDTO()
+                )
+            }
         )
 }
 
 class PowerHandler(
     inputStream: InputStream,
     flow: suspend (InputStream) -> Flow<PowerConsumption>,
-    transformFun: (PowerConsumption) -> ElasticPowerConsumptionEntity,
+    energyContractProvider: EnergyContractProvider<Consumption>,
+    transformFun: (PowerConsumption, Double) -> ElasticPowerConsumptionEntity,
     esSave: suspend (ElasticPowerConsumptionEntity) -> Either<ApplicationErrors, ElasticPowerConsumptionEntity>
 ) : RouteHandler<PowerConsumption, ElasticPowerConsumptionEntity>(
-    inputStream, flow, transformFun, esSave
+    inputStream, flow, energyContractProvider, transformFun, esSave
 )
 
 class GasHandler(
     inputStream: InputStream,
     flow: suspend (InputStream) -> Flow<GasConsumption>,
-    transformFun: (GasConsumption) -> ElasticGasConsumptionEntity,
+    energyContractProvider: EnergyContractProvider<Consumption>,
+    transformFun: (GasConsumption, Double) -> ElasticGasConsumptionEntity,
     esSave: suspend (ElasticGasConsumptionEntity) -> Either<ApplicationErrors, ElasticGasConsumptionEntity>
 ) : RouteHandler<GasConsumption, ElasticGasConsumptionEntity>(
-    inputStream, flow, transformFun, esSave
+    inputStream, flow, energyContractProvider, transformFun, esSave
 )
 
 data class ErrorResponse(
@@ -173,12 +208,12 @@ data class ErrorResponse(
 data class ConsumptionAccumulator(
     val accumulatedConsumptions: List<AccumulatedConsumption> = emptyList(),
     val errors: List<ErrorResponse> = emptyList(),
-    val consumptionsInSamePeriod: List<Consumption> = emptyList()
+    val consumptionsInSamePeriod: List<EsEntity> = emptyList()
 ) {
     fun addError(errorResponse: ErrorResponse): ConsumptionAccumulator =
         ConsumptionAccumulator(this.accumulatedConsumptions, this.errors + errorResponse, this.consumptionsInSamePeriod)
 
-    fun addConsumption(consumption: Consumption): ConsumptionAccumulator =
+    fun addConsumption(consumption: EsEntity): ConsumptionAccumulator =
         if (consumptionsInSamePeriod.lastMonthYearSame(consumption)) {
             ConsumptionAccumulator(
                 this.accumulatedConsumptions,
@@ -207,12 +242,12 @@ private fun ConsumptionAccumulator.toAccumulatedConsumptionDTO(): AccumulatedCon
         errors
     )
 
-data class AccumulatedConsumptionDTO (
+data class AccumulatedConsumptionDTO(
     val accumulatedConsumptions: List<AccumulatedConsumption>,
     val errors: List<ErrorResponse>
 )
 
-private fun List<Consumption>.lastMonthYearSame(consumption: Consumption): Boolean =
+private fun List<EsEntity>.lastMonthYearSame(consumption: EsEntity): Boolean =
     if (isNotEmpty()) {
         val last = last()
         last.dateTime.sameMonthYear(consumption.dateTime)
@@ -220,21 +255,27 @@ private fun List<Consumption>.lastMonthYearSame(consumption: Consumption): Boole
         true
     }
 
-private fun List<Consumption>.total(): Long =
-    fold(0L) { acc, consumption ->
+private fun List<EsEntity>.totalConsumption(): Double =
+    fold(0.0) { acc, consumption ->
         acc + consumption.amountConsumed
     }
 
-private fun List<Consumption>.lastMonthYear(): Pair<Int, Int> =
+private fun List<EsEntity>.totalCost(): Double =
+    fold(0.0) { acc, consumption ->
+        acc + consumption.cost
+    }
+
+private fun List<EsEntity>.lastMonthYear(): Pair<Int, Int> =
     last().dateTime.monthValue to last().dateTime.year
 
-private fun List<Consumption>.toAccumulatedConsumption(): AccumulatedConsumption =
+private fun List<EsEntity>.toAccumulatedConsumption(): AccumulatedConsumption =
     lastMonthYear()
         .let { (month, year) ->
             AccumulatedConsumption(
                 month,
                 year,
-                total()
+                totalConsumption(),
+                totalCost()
             )
         }
 
@@ -244,5 +285,6 @@ private fun LocalDateTime.sameMonthYear(other: LocalDateTime): Boolean =
 data class AccumulatedConsumption(
     val month: Int, // from 1 to 12 for each month
     val year: Int,
-    val totalConsumption: Long
+    val totalConsumption: Double,
+    val totalCost: Double
 )

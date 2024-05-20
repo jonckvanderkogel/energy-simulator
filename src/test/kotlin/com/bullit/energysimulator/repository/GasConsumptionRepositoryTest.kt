@@ -23,13 +23,13 @@ class GasConsumptionRepositoryTest(
     @Order(1)
     @Test
     fun `should save GasConsumption`() {
-        val gasConsumption = GasConsumption(LocalDateTime.now(), 5L)
+        val gasConsumption = GasConsumption(LocalDateTime.now(), 5.0)
         val gasConsumptionEntity = runBlocking {
             gasConsumptionRepository.saveGasConsumption(gasConsumption)
         }
 
         assertTrue(gasConsumptionEntity.isRight())
-        assertEquals(5L, gasConsumptionEntity.getOrNull()?.amountConsumed)
+        assertEquals(5.0, gasConsumptionEntity.getOrNull()?.amountConsumed)
     }
 
     @Order(2)
@@ -39,6 +39,6 @@ class GasConsumptionRepositoryTest(
             gasConsumptionRepository.findById(1L)
         }
 
-        assertEquals(5L, gasConsumptionEntity?.amountConsumed)
+        assertEquals(5.0, gasConsumptionEntity?.amountConsumed)
     }
 }

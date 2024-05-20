@@ -1,6 +1,7 @@
 package com.bullit.energysimulator.controller
 
 import com.bullit.energysimulator.AbstractIntegrationTest
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
@@ -25,15 +26,16 @@ class PowerHandlerTest() : AbstractIntegrationTest() {
     fun `should handle a power csv`(){
         webTestClient
             .get()
-            .uri("/import/power")
+            .uri("/import/power?contract=fixed")
             .exchange()
             .expectStatus().isOk
             .expectBody(AccumulatedConsumptionDTO::class.java)
             .consumeWith { response ->
-                assert(response.responseBody?.accumulatedConsumptions?.size == 2)
-                assert(response.responseBody?.accumulatedConsumptions?.first()?.month == 3)
-                assert(response.responseBody?.accumulatedConsumptions?.first()?.year == 2024)
-                assert(response.responseBody?.accumulatedConsumptions?.first()?.totalConsumption == 1171L)
+                assertEquals(2, response.responseBody?.accumulatedConsumptions?.size)
+                assertEquals(3, response.responseBody?.accumulatedConsumptions?.first()?.month)
+                assertEquals(2024, response.responseBody?.accumulatedConsumptions?.first()?.year)
+                assertEquals(1.171, response.responseBody?.accumulatedConsumptions?.first()?.totalConsumption ?: 0.0, 0.001)
+                assertEquals(0.2451, response.responseBody?.accumulatedConsumptions?.first()?.totalCost ?: 0.0, 0.0001)
             }
     }
 }

@@ -15,11 +15,11 @@ class GasFlowTest {
                 ?.let {
                     gasFlow(it)
                 }
-                ?.fold(0L) { acc, consumption ->
+                ?.fold(0.0) { acc, consumption ->
                     acc + consumption.amountConsumed
                 }
-        } ?: 0
+        } ?: 0.0
 
-        assertEquals(7L, totalConsumption)
+        assertEquals(0.007, totalConsumption, 0.001)
     }
 }
