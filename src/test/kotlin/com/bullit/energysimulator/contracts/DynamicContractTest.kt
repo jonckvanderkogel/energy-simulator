@@ -11,7 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDateTime
 
-@ActiveProfiles("dynamic")
 @SpringBootTest(classes = [ContractConfiguration::class, Resilience4jConfiguration::class, WireMockProxy::class])
 class DynamicContractTest(
     @Autowired private val proxy: WireMockProxy,

@@ -24,7 +24,6 @@ files:
   gas: P1g-2024-1-01-2024-5-01.csv
 
 contract:
-  type: fixed
   fixed:
     power:
       t1: 0.22145

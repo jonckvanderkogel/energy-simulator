@@ -11,7 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDateTime
 
-@ActiveProfiles("fixed")
 @SpringBootTest(classes = [ContractConfiguration::class, Resilience4jConfiguration::class])
 class FixedContractTest(
     @Autowired private val fixedContract: EnergyContract

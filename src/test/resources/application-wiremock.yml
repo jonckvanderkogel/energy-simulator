@@ -1,9 +1,0 @@
-wiremock-config:
-  url: "https://mijn.easyenergy.com/nl/api/tariff"
-  port: 9081
-  recording: false
-
-easyEnergy:
-  url: "http://localhost:${wiremock-config.port}"
-  power: "getapxtariffs"
-  gas: "getlebatariffs"

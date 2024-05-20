@@ -1,6 +1,4 @@
 spring:
-  config:
-    import: classpath:application-wiremock.yml
   liquibase:
     change-log: classpath:db/changelog.xml
 
@@ -12,3 +10,20 @@ logging:
 files:
   power: power_test.csv
   gas: gas_test.csv
+
+contract:
+  fixed:
+    power:
+      t1: 0.22145
+      t2: 0.20935
+    gas: 0.99179
+
+wiremock-config:
+  url: "https://mijn.easyenergy.com/nl/api/tariff"
+  port: 9081
+  recording: false
+
+easyEnergy:
+  url: "http://localhost:${wiremock-config.port}"
+  power: "getapxtariffs"
+  gas: "getlebatariffs"

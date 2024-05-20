@@ -10,24 +10,15 @@ docker compose up -d
 ```
 
 ## Configure contract information
-Next, you need to set your config in application.yml, specifically the type of contract you have. This can be either
-fixed or dynamic. It has to be one or the other, it can't be both.
+Next, you need to set your config in application.yml. You need to set the prices for a fixed contract:
 
-For fixed, it would look something like this:
 ```yaml
 contract:
-  type: fixed
   fixed:
     power:
       t1: 0.22145
       t2: 0.20935
     gas: 0.99179
-```
-
-For dyanmic you only have to indicate that it's dynamic, after that the prices get fetched from the EasyEnergy site:
-```yaml
-contract:
-  type: dynamic
 ```
 
 ## Start the application
