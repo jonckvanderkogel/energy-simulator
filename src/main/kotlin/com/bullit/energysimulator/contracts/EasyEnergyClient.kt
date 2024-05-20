@@ -23,7 +23,9 @@ import java.time.format.DateTimeFormatter
 
 class EasyEnergyClient(
     retryRegistry: RetryRegistry,
-    baseUrl: String
+    baseUrl: String,
+    private val powerEndpoint: String,
+    private val gasEndpoint: String
 ) {
     private val webClient = WebClient.builder()
         .baseUrl(baseUrl)
@@ -31,11 +33,11 @@ class EasyEnergyClient(
 
     private val retry = retryRegistry.retry(EASY_ENERGY_CLIENT)
 
-    private fun fetchEnergyPricesReactive(date: LocalDate): Mono<List<EnergyTariff>> {
+    private fun fetchEnergyPricesReactive(energyEndpoint: String, date: LocalDate): Mono<List<EnergyTariff>> {
         val formatter = DateTimeFormatter.ISO_LOCAL_DATE
         val startTimestamp = date.atStartOfDay().format(formatter) + "T00:00:00.000Z"
         val endTimestamp = date.plusDays(1).atStartOfDay().format(formatter) + "T00:00:00.000Z"
-        val uri = "/getapxtariffs?startTimestamp=$startTimestamp&endTimestamp=$endTimestamp"
+        val uri = "/$energyEndpoint?startTimestamp=$startTimestamp&endTimestamp=$endTimestamp&includeVat=true"
 
         return webClient
             .get()
@@ -56,9 +58,15 @@ class EasyEnergyClient(
         return Mono.error(RuntimeException("Tried too many times", e))
     }
 
-    suspend fun fetchEnergyPrices(date: LocalDate): Either<ApplicationErrors, List<EnergyTariff>> =
-        fetchEnergyPricesReactive(date)
+    private suspend fun fetchEnergyPrices(endpointType: String, date: LocalDate): Either<ApplicationErrors, List<EnergyTariff>> =
+        fetchEnergyPricesReactive(endpointType, date)
             .toEither { t -> EasyEnergyApiInteractionError(t) }
+
+    suspend fun fetchPowerPrices(date: LocalDate): Either<ApplicationErrors, List<EnergyTariff>> =
+        fetchEnergyPrices(powerEndpoint, date)
+
+    suspend fun fetchGasPrices(date: LocalDate): Either<ApplicationErrors, List<EnergyTariff>> =
+        fetchEnergyPrices(gasEndpoint, date)
 }
 
 private data class EnergyTariffDTO(

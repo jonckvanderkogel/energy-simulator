@@ -5,3 +5,5 @@ wiremock-config:
 
 easyEnergy:
   url: "http://localhost:${wiremock-config.port}"
+  power: "getapxtariffs"
+  gas: "getlebatariffs"

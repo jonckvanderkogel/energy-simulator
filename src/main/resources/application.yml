@@ -1,6 +1,4 @@
 spring:
-  main:
-    allow-bean-definition-overriding: true
   liquibase:
     url: jdbc:postgresql://localhost:${datasource.port}/${datasource.database}
     user: ${datasource.username}
@@ -35,3 +33,5 @@ contract:
 
 easyEnergy:
   url: "https://mijn.easyenergy.com/nl/api/tariff"
+  power: "getapxtariffs"
+  gas: "getlebatariffs"

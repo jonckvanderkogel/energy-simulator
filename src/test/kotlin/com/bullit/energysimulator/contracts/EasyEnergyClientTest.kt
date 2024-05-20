@@ -18,7 +18,7 @@ class EasyEnergyClientTest(
     @Test
     fun `easyEnergyClient should get dynamic energy price information`() {
         val result = runBlocking {
-            easyEnergyClient.fetchEnergyPrices(LocalDate.of(2024, 1, 1))
+            easyEnergyClient.fetchPowerPrices(LocalDate.of(2024, 1, 1))
         }
         assertTrue(result.isRight())
 

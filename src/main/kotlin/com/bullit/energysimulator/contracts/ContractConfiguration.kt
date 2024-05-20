@@ -11,8 +11,10 @@ class ContractConfiguration {
     @Bean
     fun easyEnergyClient(
         retryRegistry: RetryRegistry,
-        @Value("\${easyEnergy.url}") baseUrl: String
-    ): EasyEnergyClient = EasyEnergyClient(retryRegistry, baseUrl)
+        @Value("\${easyEnergy.url}") baseUrl: String,
+        @Value("\${easyEnergy.power}") powerEndpoint: String,
+        @Value("\${easyEnergy.gas}") gasEndpoint: String,
+    ): EasyEnergyClient = EasyEnergyClient(retryRegistry, baseUrl, powerEndpoint, gasEndpoint)
 
     @Bean
     @ConditionalOnProperty(name = ["contract.type"], havingValue = "fixed")

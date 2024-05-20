@@ -30,4 +30,17 @@ class DynamicContractTest(
                 assertEquals(0.0027104, it)
             }
     }
+
+    @Test
+    fun `should give dynamic gas price`() {
+        val result = runBlocking {
+            dynamicContract.gasPrice(LocalDateTime.of(2024, 1, 1, 11, 15))
+        }
+        assertTrue(result.isRight())
+
+        result
+            .map {
+                assertEquals(0.3755356, it)
+            }
+    }
 }

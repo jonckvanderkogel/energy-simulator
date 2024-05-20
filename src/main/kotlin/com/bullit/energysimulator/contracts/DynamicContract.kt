@@ -13,24 +13,35 @@ import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.future.await
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.concurrent.CompletableFuture
 
 class DynamicContract(
     private val easyEnergyClient: EasyEnergyClient
 ) : EnergyContract {
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    private val entityCountCache: AsyncLoadingCache<LocalDate, Either<ApplicationErrors, List<EnergyTariff>>> =
+    private fun buildCache(
+        easyEnergyClientFun: suspend (date: LocalDate) -> Either<ApplicationErrors, List<EnergyTariff>>
+    ): AsyncLoadingCache<LocalDate, Either<ApplicationErrors, List<EnergyTariff>>> =
         Caffeine.newBuilder()
             .buildAsync { key, _ ->
                 scope.async {
-                    easyEnergyClient.fetchEnergyPrices(key)
+                    easyEnergyClientFun(key)
                 }.asCompletableFuture()
             }
 
-    override suspend fun powerPrice(dateTime: LocalDateTime): Either<ApplicationErrors, Double> =
+    private val powerTariffCache: AsyncLoadingCache<LocalDate, Either<ApplicationErrors, List<EnergyTariff>>> =
+        buildCache(easyEnergyClient::fetchPowerPrices)
+
+    private val gasTariffCache: AsyncLoadingCache<LocalDate, Either<ApplicationErrors, List<EnergyTariff>>> =
+        buildCache(easyEnergyClient::fetchGasPrices)
+
+    private suspend fun energyPrice(
+        cacheFun: (date: LocalDate) -> CompletableFuture<Either<ApplicationErrors, List<EnergyTariff>>>,
+        dateTime: LocalDateTime
+    ): Either<ApplicationErrors, Double> =
         either {
-            val tariffs = entityCountCache
-                .get(dateTime.toLocalDate())
+            val tariffs = cacheFun(dateTime.toLocalDate())
                 .await()
                 .bind()
 
@@ -40,14 +51,22 @@ class DynamicContract(
                 .rateUsage
         }
 
+    override suspend fun powerPrice(dateTime: LocalDateTime): Either<ApplicationErrors, Double> =
+        energyPrice(
+            powerTariffCache::get,
+            dateTime
+        )
+
+    override suspend fun gasPrice(dateTime: LocalDateTime): Either<ApplicationErrors, Double> =
+        energyPrice(
+            gasTariffCache::get,
+            dateTime
+        )
+
     private fun List<EnergyTariff>.findByLocalDateTime(findDateTime: LocalDateTime) =
         find { it.dateTime.year == findDateTime.year
                 && it.dateTime.month == findDateTime.month
                 && it.dateTime.monthValue == findDateTime.monthValue
                 && it.dateTime.hour == findDateTime.hour}
             .toEither { MissingTariffError(findDateTime) }
-
-    override suspend fun gasPrice(dateTime: LocalDateTime): Either<ApplicationErrors, Double> {
-        TODO("Not yet implemented")
-    }
 }
