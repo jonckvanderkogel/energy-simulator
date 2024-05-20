@@ -1,10 +1,9 @@
 package com.bullit.energysimulator.contracts
 
 import arrow.core.Either
+import com.bullit.energysimulator.Consumption
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
-import java.time.LocalDateTime
 
-interface EnergyContract {
-    suspend fun powerPrice(dateTime: LocalDateTime): Either<ApplicationErrors, Double>
-    suspend fun gasPrice(dateTime: LocalDateTime): Either<ApplicationErrors, Double>
+interface EnergyContract<T: Consumption> {
+    suspend fun calculateCost(consumption: T): Either<ApplicationErrors, Double>
 }

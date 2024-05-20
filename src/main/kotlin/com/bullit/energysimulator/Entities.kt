@@ -43,7 +43,7 @@ fun GasConsumptionEntity.toEs(): ElasticGasConsumptionEntity =
 @Document(indexName = "power_consumption", createIndex = true)
 data class ElasticPowerConsumptionEntity(
     @Field(type = FieldType.Date, format = [DateFormat.date_hour_minute_second])
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     override val dateTime: LocalDateTime,
     @Field(type = FieldType.Long)
     val powerAmountConsumed: Long,
@@ -56,7 +56,7 @@ data class ElasticPowerConsumptionEntity(
 @Document(indexName = "gas_consumption", createIndex = true)
 data class ElasticGasConsumptionEntity(
     @Field(type = FieldType.Date, format = [DateFormat.date_hour_minute_second])
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern ="yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     override val dateTime: LocalDateTime,
     @Field(type = FieldType.Long)
     val gasAmountConsumed: Long

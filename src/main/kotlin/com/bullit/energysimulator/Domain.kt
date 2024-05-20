@@ -2,7 +2,7 @@ package com.bullit.energysimulator
 
 import java.time.LocalDateTime
 
-interface Consumption{
+sealed interface Consumption {
     val dateTime: LocalDateTime
     val amountConsumed: Long
 }

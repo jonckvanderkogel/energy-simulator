@@ -11,6 +11,11 @@ import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
 
+/*
+These are no longer used. At the start of the project I thought it would be useful to persist the data in Postgres
+but as time progressed, it became clear this is not useful at the moment. Keeping it around should it become useful
+again in the future.
+ */
 @Repository
 interface GasConsumptionRepository : CoroutineCrudRepository<GasConsumptionEntity, Long>, GasConsumptionRepositoryEntityTemplate
 

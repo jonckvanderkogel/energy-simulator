@@ -39,11 +39,17 @@ class HandlerConfiguration {
         return PowerHandler(
             inputStream,
             ::powerFlow,
-            powerConsumptionRepository::savePowerConsumption,
-            PowerConsumptionEntity::toEs,
+            ::powerConsumptionToElasticPowerConsumption,
             elasticsearchService::saveConsumption
         )
     }
+
+    private fun powerConsumptionToElasticPowerConsumption(powerConsumption: PowerConsumption): ElasticPowerConsumptionEntity =
+        ElasticPowerConsumptionEntity(
+            powerConsumption.dateTime,
+            powerConsumption.amountConsumed,
+            powerConsumption.rate
+        )
 
     @Bean
     fun gasHandler(
@@ -55,11 +61,16 @@ class HandlerConfiguration {
         return GasHandler(
             inputStream,
             ::gasFlow,
-            gasConsumptionRepository::saveGasConsumption,
-            GasConsumptionEntity::toEs,
+            ::gasConsumptionToElasticGasConsumption,
             elasticsearchService::saveConsumption
         )
     }
+
+    private fun gasConsumptionToElasticGasConsumption(gasConsumption: GasConsumption): ElasticGasConsumptionEntity =
+        ElasticGasConsumptionEntity(
+            gasConsumption.dateTime,
+            gasConsumption.amountConsumed
+        )
 
     @Bean
     fun searchPower(
@@ -98,15 +109,14 @@ class HandlerConfiguration {
     }
 }
 
-fun interface SearchHandler<T : EsEntity> {
+fun interface SearchHandler<S : EsEntity> {
     suspend fun search(request: ServerRequest): ServerResponse
 }
 
-abstract class RouteHandler<T : Consumption, R : DbEntity, S : EsEntity>(
+abstract class RouteHandler<T : Consumption, S : EsEntity>(
     private val inputStream: InputStream,
     private val flow: suspend (InputStream) -> Flow<T>,
-    private val dbSave: suspend (T) -> Either<ApplicationErrors, R>,
-    private val transformFun: R.() -> S,
+    private val transformFun: T.() -> S,
     private val esSave: suspend (S) -> Either<ApplicationErrors, S>
 ) {
     /*
@@ -117,11 +127,7 @@ abstract class RouteHandler<T : Consumption, R : DbEntity, S : EsEntity>(
         ServerResponse.ok().bodyValueAndAwait(
             flow(inputStream)
                 .map {
-                    either {
-                        val dbEntity = dbSave(it).bind()
-                        val esEntity = esSave(dbEntity.transformFun()).bind()
-                        esEntity
-                    }
+                    esSave(transformFun(it))
                 }
                 .fold(ConsumptionAccumulator()) { acc, either ->
                     either.fold(
@@ -142,21 +148,19 @@ abstract class RouteHandler<T : Consumption, R : DbEntity, S : EsEntity>(
 class PowerHandler(
     inputStream: InputStream,
     flow: suspend (InputStream) -> Flow<PowerConsumption>,
-    dbSave: suspend (PowerConsumption) -> Either<ApplicationErrors, PowerConsumptionEntity>,
-    transformFun: (PowerConsumptionEntity) -> ElasticPowerConsumptionEntity,
+    transformFun: (PowerConsumption) -> ElasticPowerConsumptionEntity,
     esSave: suspend (ElasticPowerConsumptionEntity) -> Either<ApplicationErrors, ElasticPowerConsumptionEntity>
-) : RouteHandler<PowerConsumption, PowerConsumptionEntity, ElasticPowerConsumptionEntity>(
-    inputStream, flow, dbSave, transformFun, esSave
+) : RouteHandler<PowerConsumption, ElasticPowerConsumptionEntity>(
+    inputStream, flow, transformFun, esSave
 )
 
 class GasHandler(
     inputStream: InputStream,
     flow: suspend (InputStream) -> Flow<GasConsumption>,
-    save: suspend (GasConsumption) -> Either<ApplicationErrors, GasConsumptionEntity>,
-    transformFun: (GasConsumptionEntity) -> ElasticGasConsumptionEntity,
+    transformFun: (GasConsumption) -> ElasticGasConsumptionEntity,
     esSave: suspend (ElasticGasConsumptionEntity) -> Either<ApplicationErrors, ElasticGasConsumptionEntity>
-) : RouteHandler<GasConsumption, GasConsumptionEntity, ElasticGasConsumptionEntity>(
-    inputStream, flow, save, transformFun, esSave
+) : RouteHandler<GasConsumption, ElasticGasConsumptionEntity>(
+    inputStream, flow, transformFun, esSave
 )
 
 data class ErrorResponse(

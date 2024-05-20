@@ -1,8 +1,6 @@
 package com.bullit.energysimulator.elasticsearch
 
-import com.bullit.energysimulator.AbstractIntegrationTest
-import com.bullit.energysimulator.ElasticPowerConsumptionEntity
-import com.bullit.energysimulator.Rate
+import com.bullit.energysimulator.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -44,6 +42,22 @@ class ElasticSearchServiceTest(
 
     @Order(2)
     @Test
+    fun `should persist gas consumption`() {
+        val consumption = ElasticGasConsumptionEntity(
+            LocalDateTime.of(2024, 3, 31, 22, 30),
+            10L
+        )
+
+        val persisted = runBlocking {
+            elasticsearchService.saveConsumption(consumption)
+        }
+
+        assertTrue(persisted.isRight())
+        assertEquals(10L, persisted.getOrNull()?.gasAmountConsumed)
+    }
+
+    @Order(3)
+    @Test
     fun `should fetch power consumption`() {
         /*
         We need to refresh the index before doing the search. Elastic refreshes the index
@@ -69,5 +83,34 @@ class ElasticSearchServiceTest(
 
         assertNotNull(retrieved)
         assertEquals(10L, retrieved.powerAmountConsumed)
+    }
+
+    @Order(4)
+    @Test
+    fun `should fetch gas consumption`() {
+        /*
+        We need to refresh the index before doing the search. Elastic refreshes the index
+        asynchronously so if you run this test directly after the write operation chances
+        are you will not get a hit. By manually refreshing the index you force this process
+        and now you are ensured of getting your search results.
+         */
+        runBlocking {
+            ops
+                .indexOps(ElasticGasConsumptionEntity::class.java)
+                .refresh()
+                .awaitFirstOrNull()
+        }
+
+        val retrieved = runBlocking {
+            elasticsearchService
+                .searchByDateRange<ElasticGasConsumptionEntity>(
+                    LocalDateTime.of(2024, 3, 31, 22, 29),
+                    LocalDateTime.of(2024, 3, 31, 22, 31)
+                )
+                .first()
+        }
+
+        assertNotNull(retrieved)
+        assertEquals(10L, retrieved.gasAmountConsumed)
     }
 }

@@ -2,10 +2,9 @@ package com.bullit.energysimulator.elasticsearch
 
 import arrow.core.Either
 import co.elastic.clients.json.JsonData
-import com.bullit.energysimulator.EsEntity
+import com.bullit.energysimulator.*
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
 import com.bullit.energysimulator.errorhandling.ElasticsearchInteractionError
-import com.bullit.energysimulator.toEither
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import org.springframework.data.elasticsearch.client.elc.NativeQuery

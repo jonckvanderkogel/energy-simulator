@@ -1,8 +1,8 @@
 package com.bullit.energysimulator.contracts
 
+import com.bullit.energysimulator.Consumption
 import io.github.resilience4j.retry.RetryRegistry
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -21,12 +21,29 @@ class ContractConfiguration {
         @Value("\${contract.fixed.power.t1}") powerPriceT1: Double,
         @Value("\${contract.fixed.power.t2}") powerPriceT2: Double,
         @Value("\${contract.fixed.gas}") gasPrice: Double,
-    ): EnergyContract = FixedContract(
+    ): FixedContract = FixedContract(
         powerPriceT1, powerPriceT2, gasPrice
     )
 
     @Bean
     fun dynamicContract(
         easyEnergyClient: EasyEnergyClient
-    ): EnergyContract = DynamicContract(easyEnergyClient)
+    ): DynamicContract = DynamicContract(easyEnergyClient)
+
+    @Bean
+    fun energyContractProvider(
+        fixedContract: FixedContract,
+        dynamicContract: DynamicContract
+    ): EnergyContractProvider<Consumption> = { contractType ->
+        when (contractType) {
+            ContractType.FIXED -> fixedContract
+            ContractType.DYNAMIC -> dynamicContract
+        }
+    }
+}
+
+typealias EnergyContractProvider<T> = (ContractType) -> EnergyContract<T>
+
+enum class ContractType {
+    FIXED, DYNAMIC
 }

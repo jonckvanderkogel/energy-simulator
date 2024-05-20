@@ -2,6 +2,9 @@ package com.bullit.energysimulator.contracts
 
 import arrow.core.Either
 import arrow.core.raise.either
+import com.bullit.energysimulator.Consumption
+import com.bullit.energysimulator.GasConsumption
+import com.bullit.energysimulator.PowerConsumption
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
 import com.bullit.energysimulator.errorhandling.MissingTariffError
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache
@@ -17,7 +20,7 @@ import java.util.concurrent.CompletableFuture
 
 class DynamicContract(
     private val easyEnergyClient: EasyEnergyClient
-) : EnergyContract {
+) : EnergyContract<Consumption> {
     private val scope = CoroutineScope(Dispatchers.IO)
 
     private fun buildCache(
@@ -51,13 +54,13 @@ class DynamicContract(
                 .rateUsage
         }
 
-    override suspend fun powerPrice(dateTime: LocalDateTime): Either<ApplicationErrors, Double> =
+    private suspend fun powerPrice(dateTime: LocalDateTime): Either<ApplicationErrors, Double> =
         energyPrice(
             powerTariffCache::get,
             dateTime
         )
 
-    override suspend fun gasPrice(dateTime: LocalDateTime): Either<ApplicationErrors, Double> =
+    private suspend fun gasPrice(dateTime: LocalDateTime): Either<ApplicationErrors, Double> =
         energyPrice(
             gasTariffCache::get,
             dateTime
@@ -69,4 +72,10 @@ class DynamicContract(
                 && it.dateTime.monthValue == findDateTime.monthValue
                 && it.dateTime.hour == findDateTime.hour}
             .toEither { MissingTariffError(findDateTime) }
+
+    override suspend fun calculateCost(consumption: Consumption): Either<ApplicationErrors, Double> =
+        when (consumption) {
+            is PowerConsumption -> powerPrice(consumption.dateTime).map { it  * consumption.amountConsumed }
+            is GasConsumption -> gasPrice(consumption.dateTime).map { it * consumption.amountConsumed}
+        }
 }
