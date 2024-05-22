@@ -3,6 +3,7 @@ package com.bullit.energysimulator.controller
 import arrow.core.Either
 import arrow.core.raise.either
 import com.bullit.energysimulator.Consumption
+import com.bullit.energysimulator.ContractType
 import com.bullit.energysimulator.EsEntity
 import com.bullit.energysimulator.contracts.EnergyContract
 import com.bullit.energysimulator.contracts.EnergyContractProvider

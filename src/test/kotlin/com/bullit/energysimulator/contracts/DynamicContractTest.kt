@@ -31,7 +31,7 @@ class DynamicContractTest(
 
         result
             .map {
-                assertEquals(0.027104, it, 0.000001)
+                assertEquals(13.192103, it, 0.000001)
             }
     }
 
@@ -49,7 +49,7 @@ class DynamicContractTest(
 
         result
             .map {
-                assertEquals(3.755356, it, 0.000001)
+                assertEquals(74.299356, it, 0.000001)
             }
     }
 }

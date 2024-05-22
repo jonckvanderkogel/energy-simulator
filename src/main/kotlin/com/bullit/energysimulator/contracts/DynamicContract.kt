@@ -19,7 +19,9 @@ import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
 
 class DynamicContract(
-    private val easyEnergyClient: EasyEnergyClient
+    private val easyEnergyClient: EasyEnergyClient,
+    private val taxPower: Double,
+    private val taxGas: Double
 ) : EnergyContract<Consumption> {
     private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -75,7 +77,7 @@ class DynamicContract(
 
     override suspend fun calculateCost(consumption: Consumption): Either<ApplicationErrors, Double> =
         when (consumption) {
-            is PowerConsumption -> powerPrice(consumption.dateTime).map { it  * consumption.amountConsumed }
-            is GasConsumption -> gasPrice(consumption.dateTime).map { it * consumption.amountConsumed}
+            is PowerConsumption -> powerPrice(consumption.dateTime).map { (it + taxPower)  * consumption.amountConsumed }
+            is GasConsumption -> gasPrice(consumption.dateTime).map { (it + taxGas) * consumption.amountConsumed }
         }
 }

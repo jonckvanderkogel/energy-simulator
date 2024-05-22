@@ -1,11 +1,7 @@
 package com.bullit.energysimulator.elasticsearch
 
-import com.bullit.energysimulator.AbstractIntegrationTest
-import com.bullit.energysimulator.ElasticGasConsumptionEntity
-import com.bullit.energysimulator.ElasticPowerConsumptionEntity
-import com.bullit.energysimulator.Rate
-import com.bullit.energysimulator.controller.ContractType
-import com.bullit.energysimulator.controller.ContractType.*
+import com.bullit.energysimulator.*
+import com.bullit.energysimulator.ContractType.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking

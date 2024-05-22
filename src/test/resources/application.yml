@@ -18,6 +18,10 @@ contract:
       t2: 0.20935
     gas: 0.99179
 
+tax:
+  power: 13.165
+  gas: 70.544
+
 wiremock-config:
   url: "https://mijn.easyenergy.com/nl/api/tariff"
   port: 9081

@@ -1,6 +1,11 @@
 package com.bullit.energysimulator
 
-import com.bullit.energysimulator.controller.ContractType
+import arrow.core.Either
+import arrow.core.leftNel
+import arrow.core.right
+import com.bullit.energysimulator.EnergyType.*
+import com.bullit.energysimulator.errorhandling.ApplicationErrors
+import com.bullit.energysimulator.errorhandling.InvalidContractTypeError
 import com.fasterxml.jackson.annotation.JsonFormat
 import org.springframework.data.annotation.Id
 import org.springframework.data.elasticsearch.annotations.DateFormat
@@ -35,6 +40,7 @@ interface EsEntity {
     val amountConsumed: Double
     val cost: Double
     val contractType: ContractType
+    val energyType: EnergyType
 }
 
 @Document(indexName = "power_consumption", createIndex = true)
@@ -51,7 +57,9 @@ data class ElasticPowerConsumptionEntity(
     @Field(type = FieldType.Double)
     override val cost: Double,
     @Field(type = FieldType.Keyword)
-    override val contractType: ContractType
+    override val contractType: ContractType,
+    @Field(type = FieldType.Keyword)
+    override val energyType: EnergyType = POWER
 ) : EsEntity {
     constructor(
         dateTime: LocalDateTime,
@@ -93,7 +101,9 @@ data class ElasticGasConsumptionEntity(
     @Field(type = FieldType.Double)
     override val cost: Double,
     @Field(type = FieldType.Keyword)
-    override val contractType: ContractType
+    override val contractType: ContractType,
+    @Field(type = FieldType.Keyword)
+    override val energyType: EnergyType = GAS
 ) : EsEntity {
     constructor(
         dateTime: LocalDateTime,
@@ -119,3 +129,20 @@ fun GasConsumption.toElasticGasConsumption(
         cost,
         contractType
     )
+
+enum class ContractType {
+    FIXED, DYNAMIC;
+
+    companion object {
+        fun parseContractTypeString(contractTypeString: String): Either<ApplicationErrors, ContractType> =
+            try {
+                ContractType.valueOf(contractTypeString.uppercase()).right()
+            } catch (e: IllegalArgumentException) {
+                InvalidContractTypeError("contractTypeString").leftNel()
+            }
+    }
+}
+
+enum class EnergyType {
+    POWER, GAS
+}

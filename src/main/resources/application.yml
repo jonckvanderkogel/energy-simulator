@@ -30,6 +30,10 @@ contract:
       t2: 0.20935
     gas: 0.99179
 
+tax:
+  power: 0.13165
+  gas: 0.70544
+
 easyEnergy:
   url: "https://mijn.easyenergy.com/nl/api/tariff"
   power: "getapxtariffs"
