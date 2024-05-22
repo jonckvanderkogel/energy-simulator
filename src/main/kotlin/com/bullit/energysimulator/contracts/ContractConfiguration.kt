@@ -1,7 +1,8 @@
 package com.bullit.energysimulator.contracts
 
 import com.bullit.energysimulator.Consumption
-import com.bullit.energysimulator.ContractType
+import com.bullit.energysimulator.controller.ContractType
+import com.bullit.energysimulator.controller.ContractType.*
 import io.github.resilience4j.retry.RetryRegistry
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -37,8 +38,8 @@ class ContractConfiguration {
         dynamicContract: DynamicContract
     ): EnergyContractProvider<Consumption> = { contractType ->
         when (contractType) {
-            ContractType.FIXED -> fixedContract
-            ContractType.DYNAMIC -> dynamicContract
+            FIXED -> fixedContract
+            DYNAMIC -> dynamicContract
         }
     }
 }

@@ -1,8 +1,7 @@
 package com.bullit.energysimulator.controller
 
-import com.bullit.energysimulator.ContractType
-import com.bullit.energysimulator.ContractType.*
 import com.bullit.energysimulator.ElasticGasConsumptionEntity
+import com.bullit.energysimulator.controller.ContractType.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime

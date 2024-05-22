@@ -1,10 +1,5 @@
 package com.bullit.energysimulator
 
-import arrow.core.Either
-import arrow.core.leftNel
-import arrow.core.right
-import com.bullit.energysimulator.errorhandling.ApplicationErrors
-import com.bullit.energysimulator.errorhandling.MissingArgumentError
 import java.time.LocalDateTime
 
 sealed interface Consumption {
@@ -40,17 +35,4 @@ data class RawCSVDataGas(
 
 enum class Rate {
     T1, T2
-}
-
-enum class ContractType() {
-    FIXED, DYNAMIC;
-
-    companion object {
-        fun parseContractTypeString(contractTypeString: String): Either<ApplicationErrors, ContractType> =
-            try {
-                ContractType.valueOf(contractTypeString.uppercase()).right()
-            } catch (e: IllegalArgumentException) {
-                MissingArgumentError("ContractType: $contractTypeString does not exist").leftNel()
-            }
-    }
 }
