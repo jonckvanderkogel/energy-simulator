@@ -12,28 +12,7 @@ import org.springframework.data.elasticsearch.annotations.DateFormat
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
-import org.springframework.data.relational.core.mapping.Table
 import java.time.LocalDateTime
-
-interface DbEntity {
-    val dateTime: LocalDateTime
-    val amountConsumed: Double
-}
-
-@Table("power_consumption")
-data class PowerConsumptionEntity(
-    @Id val id: Long,
-    override val dateTime: LocalDateTime,
-    override val amountConsumed: Double,
-    val rate: Rate
-) : DbEntity
-
-@Table("gas_consumption")
-data class GasConsumptionEntity(
-    @Id val id: Long,
-    override val dateTime: LocalDateTime,
-    override val amountConsumed: Double
-) : DbEntity
 
 interface EsEntity {
     val dateTime: LocalDateTime

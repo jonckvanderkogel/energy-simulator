@@ -10,8 +10,6 @@ import com.bullit.energysimulator.elasticsearch.ElasticsearchService
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
 import com.bullit.energysimulator.errorhandling.MissingArgumentError
 import com.bullit.energysimulator.errorhandling.joinMessages
-import com.bullit.energysimulator.repository.GasConsumptionRepository
-import com.bullit.energysimulator.repository.PowerConsumptionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.map
@@ -32,7 +30,6 @@ import java.time.format.DateTimeFormatter
 class HandlerConfiguration {
     @Bean
     fun powerHandler(
-        powerConsumptionRepository: PowerConsumptionRepository,
         elasticsearchService: ElasticsearchService,
         energyContractProvider: EnergyContractProvider<Consumption>,
         @Value("\${files.power}") powerCsvName: String
@@ -48,7 +45,6 @@ class HandlerConfiguration {
 
     @Bean
     fun gasHandler(
-        gasConsumptionRepository: GasConsumptionRepository,
         elasticsearchService: ElasticsearchService,
         energyContractProvider: EnergyContractProvider<Consumption>,
         @Value("\${files.gas}") gasCsvName: String
