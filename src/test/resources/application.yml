@@ -19,8 +19,8 @@ contract:
     gas: 0.99179
 
 tax:
-  power: 13.165
-  gas: 70.544
+  power: 0.13165
+  gas: 0.70544
 
 wiremock-config:
   url: "https://mijn.easyenergy.com/nl/api/tariff"

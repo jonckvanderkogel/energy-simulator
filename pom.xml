@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.5</version>
+        <version>3.3.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.bullit</groupId>
@@ -15,11 +15,11 @@
     <description>Home energy consumption simulation</description>
     <properties>
         <java.version>21</java.version>
-        <kotlin.version>1.9.23</kotlin.version>
+        <kotlin.version>2.0.0</kotlin.version>
         <arrow.version>1.2.4</arrow.version>
-        <spring-jdbc.version>6.1.6</spring-jdbc.version>
+        <spring-jdbc.version>6.1.8</spring-jdbc.version>
         <serialization.version>1.6.3</serialization.version>
-        <testcontainers.version>1.19.7</testcontainers.version>
+        <testcontainers.version>1.19.8</testcontainers.version>
         <resilience4j.version>2.2.0</resilience4j.version>
         <commons.csv.version>1.11.0</commons.csv.version>
         <wiremock.version>3.5.4</wiremock.version>
