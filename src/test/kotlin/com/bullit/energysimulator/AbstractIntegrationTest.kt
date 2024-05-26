@@ -1,7 +1,6 @@
 package com.bullit.energysimulator
 
 import org.slf4j.LoggerFactory
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.elasticsearch.ElasticsearchContainer
@@ -10,7 +9,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
 
 
 @Testcontainers
-@ActiveProfiles(profiles = ["test"])
 abstract class AbstractIntegrationTest {
     companion object {
         private val logger = LoggerFactory.getLogger(AbstractIntegrationTest::class.java)

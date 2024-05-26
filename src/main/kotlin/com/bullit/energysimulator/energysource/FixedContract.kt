@@ -1,4 +1,4 @@
-package com.bullit.energysimulator.contracts
+package com.bullit.energysimulator.energysource
 
 import arrow.core.Either
 import arrow.core.right
@@ -12,7 +12,7 @@ class FixedContract(
     private val powerPriceT1: Double,
     private val powerPriceT2: Double,
     private val gasPrice: Double,
-) : EnergyContract<Consumption> {
+) : EnergySource {
     private fun powerPrice(rate: Rate): Either<ApplicationErrors, Double> =
         when (rate) {
             Rate.T1 -> powerPriceT1.right()

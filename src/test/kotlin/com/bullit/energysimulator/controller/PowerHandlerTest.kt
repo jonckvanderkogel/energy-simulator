@@ -30,7 +30,7 @@ class PowerHandlerTest : AbstractIntegrationTest() {
     fun `should handle a power csv with a fixed contract`() {
         webTestClient
             .get()
-            .uri("/import/power?contract=fixed")
+            .uri("/import/power?source=fixed")
             .exchange()
             .expectStatus().isOk
             .expectBody(AccumulatedConsumptionDTO::class.java)

@@ -1,6 +1,6 @@
 package com.bullit.energysimulator
 
-import com.bullit.energysimulator.contracts.EnergyTariff
+import com.bullit.energysimulator.energysource.EnergyTariff
 import io.github.resilience4j.core.IntervalFunction
 import io.github.resilience4j.retry.RetryConfig
 import io.github.resilience4j.retry.RetryRegistry

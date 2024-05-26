@@ -10,10 +10,9 @@ import com.github.tomakehurst.wiremock.recording.RecordSpec
 import com.github.tomakehurst.wiremock.recording.RecordingStatus
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
-import org.springframework.beans.factory.annotation.Autowired
 
 abstract class AbstractWiremockTest(
-    @Autowired private val proxy: WireMockProxy
+    private val proxy: WireMockProxy
 ) {
     private lateinit var wiremockServer: WireMockServer
 

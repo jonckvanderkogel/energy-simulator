@@ -1,7 +1,7 @@
 package com.bullit.energysimulator.elasticsearch
 
 import com.bullit.energysimulator.*
-import com.bullit.energysimulator.ContractType.*
+import com.bullit.energysimulator.EnergySourceType.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking

@@ -1,4 +1,4 @@
-package com.bullit.energysimulator.contracts
+package com.bullit.energysimulator.energysource
 
 import com.bullit.energysimulator.AbstractWiremockTest
 import com.bullit.energysimulator.Resilience4jConfiguration

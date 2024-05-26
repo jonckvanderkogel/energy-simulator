@@ -18,7 +18,7 @@ interface EsEntity {
     val dateTime: LocalDateTime
     val amountConsumed: Double
     val cost: Double
-    val contractType: ContractType
+    val contractType: EnergySourceType
     val energyType: EnergyType
 }
 
@@ -36,7 +36,7 @@ data class ElasticPowerConsumptionEntity(
     @Field(type = FieldType.Double)
     override val cost: Double,
     @Field(type = FieldType.Keyword)
-    override val contractType: ContractType,
+    override val contractType: EnergySourceType,
     @Field(type = FieldType.Keyword)
     override val energyType: EnergyType = POWER
 ) : EsEntity {
@@ -45,7 +45,7 @@ data class ElasticPowerConsumptionEntity(
         amountConsumed: Double,
         rate: Rate,
         cost: Double,
-        contractType: ContractType
+        contractType: EnergySourceType
     ) : this(
         id = "$dateTime-$contractType",
         dateTime = dateTime,
@@ -58,7 +58,7 @@ data class ElasticPowerConsumptionEntity(
 
 fun PowerConsumption.toElasticPowerConsumption(
     cost: Double,
-    contractType: ContractType
+    contractType: EnergySourceType
 ): ElasticPowerConsumptionEntity =
     ElasticPowerConsumptionEntity(
         this.dateTime,
@@ -80,7 +80,7 @@ data class ElasticGasConsumptionEntity(
     @Field(type = FieldType.Double)
     override val cost: Double,
     @Field(type = FieldType.Keyword)
-    override val contractType: ContractType,
+    override val contractType: EnergySourceType,
     @Field(type = FieldType.Keyword)
     override val energyType: EnergyType = GAS
 ) : EsEntity {
@@ -88,7 +88,7 @@ data class ElasticGasConsumptionEntity(
         dateTime: LocalDateTime,
         amountConsumed: Double,
         cost: Double,
-        contractType: ContractType
+        contractType: EnergySourceType
     ) : this(
         id = "$dateTime-$contractType",
         dateTime = dateTime,
@@ -100,7 +100,7 @@ data class ElasticGasConsumptionEntity(
 
 fun GasConsumption.toElasticGasConsumption(
     cost: Double,
-    contractType: ContractType
+    contractType: EnergySourceType
 ): ElasticGasConsumptionEntity =
     ElasticGasConsumptionEntity(
         this.dateTime,
@@ -109,15 +109,15 @@ fun GasConsumption.toElasticGasConsumption(
         contractType
     )
 
-enum class ContractType {
-    FIXED, DYNAMIC;
+enum class EnergySourceType {
+    FIXED, DYNAMIC, BATTERY;
 
     companion object {
-        fun parseContractTypeString(contractTypeString: String): Either<ApplicationErrors, ContractType> =
+        fun parseEnergySourceTypeString(contractTypeString: String): Either<ApplicationErrors, EnergySourceType> =
             try {
-                ContractType.valueOf(contractTypeString.uppercase()).right()
+                EnergySourceType.valueOf(contractTypeString.uppercase()).right()
             } catch (e: IllegalArgumentException) {
-                InvalidContractTypeError("contractTypeString").leftNel()
+                InvalidContractTypeError("energySourceTypeString").leftNel()
             }
     }
 }

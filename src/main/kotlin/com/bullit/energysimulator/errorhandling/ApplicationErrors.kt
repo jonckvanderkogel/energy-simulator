@@ -39,11 +39,6 @@ abstract class AbstractApplicationError(
 fun <T : ApplicationError> NonEmptyList<T>.joinMessages(separator: CharSequence = ", "): String =
     this.map { it }.joinToString(separator = separator)
 
-class DatabaseInteractionError(t: Throwable) : AbstractApplicationError(
-    message = t.message ?: "Exception while interacting with Postgres",
-    throwable = t
-)
-
 class ElasticsearchInteractionError(t: Throwable) : AbstractApplicationError(
     message = t.message ?: "Exception while interacting with Elasticsearch",
     throwable = t
@@ -54,7 +49,7 @@ class EasyEnergyApiInteractionError(t: Throwable) : AbstractApplicationError(
     throwable = t
 )
 
-class NoResponseError() : AbstractApplicationError(
+class NoResponseError : AbstractApplicationError(
     message = "No response for request"
 )
 
@@ -68,4 +63,8 @@ class InvalidContractTypeError(argument: String) : AbstractApplicationError(
 
 class MissingTariffError(argument: LocalDateTime) : AbstractApplicationError(
     message = "Tariff is missing for $argument"
+)
+
+class CouldNotCalculateMinimumPriceError(argument: LocalDateTime) : AbstractApplicationError(
+    message = "Could not calculate minimum price for the list of prices fetched for $argument"
 )

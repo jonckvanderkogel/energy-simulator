@@ -1,4 +1,4 @@
-package com.bullit.energysimulator.contracts
+package com.bullit.energysimulator.energysource
 
 import com.bullit.energysimulator.*
 import com.bullit.energysimulator.wiremock.WireMockProxy
@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 @SpringBootTest(classes = [ContractConfiguration::class, Resilience4jConfiguration::class, WireMockProxy::class])
 class DynamicContractTest(
     @Autowired private val proxy: WireMockProxy,
-    @Autowired private val dynamicContract: EnergyContract<Consumption>
+    @Autowired private val dynamicContract: DynamicContract
 ) : AbstractWiremockTest(proxy) {
 
     @Test

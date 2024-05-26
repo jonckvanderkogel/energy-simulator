@@ -1,4 +1,4 @@
-package com.bullit.energysimulator.contracts
+package com.bullit.energysimulator.energysource
 
 import arrow.core.Either
 import arrow.core.raise.either
@@ -8,38 +8,17 @@ import com.bullit.energysimulator.PowerConsumption
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
 import com.bullit.energysimulator.errorhandling.MissingTariffError
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache
-import com.github.benmanes.caffeine.cache.Caffeine
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.future.await
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
 
 class DynamicContract(
-    private val easyEnergyClient: EasyEnergyClient,
     private val taxPower: Double,
-    private val taxGas: Double
-) : EnergyContract<Consumption> {
-    private val scope = CoroutineScope(Dispatchers.IO)
-
-    private fun buildCache(
-        easyEnergyClientFun: suspend (date: LocalDate) -> Either<ApplicationErrors, List<EnergyTariff>>
-    ): AsyncLoadingCache<LocalDate, Either<ApplicationErrors, List<EnergyTariff>>> =
-        Caffeine.newBuilder()
-            .buildAsync { key, _ ->
-                scope.async {
-                    easyEnergyClientFun(key)
-                }.asCompletableFuture()
-            }
-
-    private val powerTariffCache: AsyncLoadingCache<LocalDate, Either<ApplicationErrors, List<EnergyTariff>>> =
-        buildCache(easyEnergyClient::fetchPowerPrices)
-
-    private val gasTariffCache: AsyncLoadingCache<LocalDate, Either<ApplicationErrors, List<EnergyTariff>>> =
-        buildCache(easyEnergyClient::fetchGasPrices)
+    private val taxGas: Double,
+    private val powerTariffCache: AsyncLoadingCache<LocalDate, Either<ApplicationErrors, List<EnergyTariff>>>,
+    private val gasTariffCache: AsyncLoadingCache<LocalDate, Either<ApplicationErrors, List<EnergyTariff>>>
+) : EnergySource {
 
     private suspend fun energyPrice(
         cacheFun: (date: LocalDate) -> CompletableFuture<Either<ApplicationErrors, List<EnergyTariff>>>,

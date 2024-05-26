@@ -1,7 +1,6 @@
 package com.bullit.energysimulator.controller
 
-import com.bullit.energysimulator.ContractType
-import com.bullit.energysimulator.ContractType.*
+import com.bullit.energysimulator.EnergySourceType.*
 import com.bullit.energysimulator.ElasticGasConsumptionEntity
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

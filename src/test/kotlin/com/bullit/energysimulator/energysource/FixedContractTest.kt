@@ -1,4 +1,4 @@
-package com.bullit.energysimulator.contracts
+package com.bullit.energysimulator.energysource
 
 import com.bullit.energysimulator.*
 import kotlinx.coroutines.runBlocking
@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 
 @SpringBootTest(classes = [ContractConfiguration::class, Resilience4jConfiguration::class])
 class FixedContractTest(
-    @Autowired private val fixedContract: EnergyContract<Consumption>
+    @Autowired private val fixedContract: FixedContract
 ) {
 
     @Test

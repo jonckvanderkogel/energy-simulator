@@ -1,12 +1,12 @@
-package com.bullit.energysimulator.contracts
+package com.bullit.energysimulator.energysource
 
 import arrow.core.Either
 import arrow.core.leftNel
 import arrow.core.right
 import com.bullit.energysimulator.Resilience4jConfiguration.Companion.EASY_ENERGY_CLIENT
+import com.bullit.energysimulator.errorhandling.AbstractApplicationError
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
 import com.bullit.energysimulator.errorhandling.EasyEnergyApiInteractionError
-import com.bullit.energysimulator.errorhandling.MissingTariffError
 import com.bullit.energysimulator.toEither
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.github.resilience4j.reactor.retry.RetryOperator
@@ -84,5 +84,5 @@ data class EnergyTariff(
     val rateReturn: Double
 )
 
-fun EnergyTariff?.toEither(errorFun: () -> MissingTariffError): Either<ApplicationErrors, EnergyTariff> =
+fun EnergyTariff?.toEither(errorFun: () -> AbstractApplicationError): Either<ApplicationErrors, EnergyTariff> =
     this?.right() ?: errorFun().leftNel()

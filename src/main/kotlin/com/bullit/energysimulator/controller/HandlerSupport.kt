@@ -2,11 +2,10 @@ package com.bullit.energysimulator.controller
 
 import arrow.core.Either
 import arrow.core.raise.either
-import com.bullit.energysimulator.Consumption
-import com.bullit.energysimulator.ContractType
+import com.bullit.energysimulator.EnergySourceType
 import com.bullit.energysimulator.EsEntity
-import com.bullit.energysimulator.contracts.EnergyContract
-import com.bullit.energysimulator.contracts.EnergyContractProvider
+import com.bullit.energysimulator.energysource.EnergySource
+import com.bullit.energysimulator.energysource.EnergySourceProvider
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
 import com.bullit.energysimulator.errorhandling.MissingArgumentError
 import com.bullit.energysimulator.toEither
@@ -115,17 +114,17 @@ data class AccumulatedConsumption(
     val totalCost: Double
 )
 
-internal fun parseContractType(
+internal fun parseEnergySourceType(
     request: ServerRequest,
-    energyContractProvider: EnergyContractProvider<Consumption>
-): Either<ApplicationErrors, Pair<ContractType, EnergyContract<Consumption>>> = either {
+    energySourceProvider: EnergySourceProvider
+): Either<ApplicationErrors, Pair<EnergySourceType, EnergySource>> = either {
     val contractTypeParameter = request
-        .queryParam("contract")
-        .toEither { MissingArgumentError("contract") }.bind()
+        .queryParam("source")
+        .toEither { MissingArgumentError("source") }.bind()
 
-    val contractType = ContractType
-        .parseContractTypeString(contractTypeParameter)
+    val contractType = EnergySourceType
+        .parseEnergySourceTypeString(contractTypeParameter)
         .bind()
 
-    contractType to energyContractProvider(contractType)
+    contractType to energySourceProvider(contractType)
 }
