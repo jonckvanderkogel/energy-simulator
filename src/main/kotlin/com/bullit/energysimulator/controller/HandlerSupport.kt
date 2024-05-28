@@ -14,9 +14,7 @@ import java.time.LocalDateTime
 
 data class ErrorResponse(
     val message: String,
-    val status: Int,
-    val error: String = "Bad Request",
-    val timestamp: Long = System.currentTimeMillis()
+    val status: Int
 )
 
 data class ConsumptionAccumulator(

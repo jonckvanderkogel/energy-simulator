@@ -18,7 +18,7 @@ interface EsEntity {
     val dateTime: LocalDateTime
     val amountConsumed: Double
     val cost: Double
-    val contractType: EnergySourceType
+    val energySourceType: EnergySourceType
     val energyType: EnergyType
 }
 
@@ -36,7 +36,7 @@ data class ElasticPowerConsumptionEntity(
     @Field(type = FieldType.Double)
     override val cost: Double,
     @Field(type = FieldType.Keyword)
-    override val contractType: EnergySourceType,
+    override val energySourceType: EnergySourceType,
     @Field(type = FieldType.Keyword)
     override val energyType: EnergyType = POWER
 ) : EsEntity {
@@ -45,14 +45,14 @@ data class ElasticPowerConsumptionEntity(
         amountConsumed: Double,
         rate: Rate,
         cost: Double,
-        contractType: EnergySourceType
+        energySourceType: EnergySourceType
     ) : this(
-        id = "$dateTime-$contractType",
+        id = "$dateTime-$energySourceType",
         dateTime = dateTime,
         amountConsumed = amountConsumed,
         rate = rate,
         cost = cost,
-        contractType = contractType
+        energySourceType = energySourceType
     )
 }
 
@@ -80,7 +80,7 @@ data class ElasticGasConsumptionEntity(
     @Field(type = FieldType.Double)
     override val cost: Double,
     @Field(type = FieldType.Keyword)
-    override val contractType: EnergySourceType,
+    override val energySourceType: EnergySourceType,
     @Field(type = FieldType.Keyword)
     override val energyType: EnergyType = GAS
 ) : EsEntity {
@@ -88,13 +88,13 @@ data class ElasticGasConsumptionEntity(
         dateTime: LocalDateTime,
         amountConsumed: Double,
         cost: Double,
-        contractType: EnergySourceType
+        energySourceType: EnergySourceType
     ) : this(
-        id = "$dateTime-$contractType",
+        id = "$dateTime-$energySourceType",
         dateTime = dateTime,
         amountConsumed = amountConsumed,
         cost = cost,
-        contractType = contractType
+        energySourceType = energySourceType
     )
 }
 
