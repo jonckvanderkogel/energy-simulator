@@ -2,14 +2,11 @@ package com.bullit.energysimulator.controller
 
 import arrow.core.Either
 import arrow.core.raise.either
-import com.bullit.energysimulator.EnergySourceType
-import com.bullit.energysimulator.EsEntity
-import com.bullit.energysimulator.HeatingType
+import com.bullit.energysimulator.*
 import com.bullit.energysimulator.energysource.EnergySource
 import com.bullit.energysimulator.energysource.EnergySourceProvider
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
 import com.bullit.energysimulator.errorhandling.MissingArgumentError
-import com.bullit.energysimulator.toEither
 import org.springframework.web.reactive.function.server.ServerRequest
 import java.time.LocalDateTime
 
@@ -117,21 +114,41 @@ internal fun parseParameters(
     request: ServerRequest,
     energySourceProvider: EnergySourceProvider
 ): Either<ApplicationErrors, Pair<HeatingType, EnergySource>> = either {
-    val energySourceTypeParameter = request
-        .queryParam("source")
-        .toEither { MissingArgumentError("source") }.bind()
+    val energySourceType = parseEnergySourceParam(request).bind()
 
-    val contractType = EnergySourceType
-        .parseEnergySourceTypeString(energySourceTypeParameter)
-        .bind()
+    val heatingType = parseHeatingParam(request).bind()
 
-    val heatingTypeParameter = request
-        .queryParam("heating")
-        .toEither { MissingArgumentError("heating") }.bind()
+    heatingType to energySourceProvider(energySourceType)
+}
 
-    val heatingType = HeatingType
-        .parseHeatingTypeString(heatingTypeParameter)
-        .bind()
+private fun parseEnergySourceParam(
+    request: ServerRequest
+): Either<ApplicationErrors, EnergySourceType> =
+    parseEnumParam(request, "source", EnergySourceType.Companion::parse)
 
-    heatingType to energySourceProvider(contractType)
+/*
+For power flows this parameter is not required, we pass a default of BOILER here since it's needed due to the generic
+nature of the flow, but won't actually be used in the power flows.
+ */
+private fun parseHeatingParam(
+    request: ServerRequest
+): Either<ApplicationErrors, HeatingType> =
+    either {
+        if (request.path().contains("gas")) {
+            parseEnumParam(request, "heating", HeatingType.Companion::parse).bind()
+        } else {
+            HeatingType.BOILER
+        }
+    }
+
+private inline fun <reified T> parseEnumParam(
+    request: ServerRequest,
+    paramName: String,
+    parseFunction: (String) -> Either<ApplicationErrors, T>
+): Either<ApplicationErrors, T> where T : Enum<T>, T : ParsableEnum<T> = either {
+    val paramValue = request
+        .queryParam(paramName)
+        .toEither { MissingArgumentError(paramName) }.bind()
+
+    parseFunction(paramValue).bind()
 }

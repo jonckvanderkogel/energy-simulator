@@ -59,11 +59,11 @@ class FixedContract(
                             val cost = it * amountConsumed
                             ElasticPowerConsumptionEntity(
                                 consumption.dateTime,
-                                consumption.amountConsumed,
+                                amountConsumed,
                                 consumption.calculateRate(),
                                 cost,
                                 FIXED,
-                                PowerConsumptionType.GENERAL
+                                PowerConsumptionType.HEATING
                             )
                         }
                 }

@@ -32,6 +32,8 @@ Now run a simulation as follows:
 curl "http://localhost:8080/import/power?source=dynamic"
 curl "http://localhost:8080/import/power?source=fixed"
 curl "http://localhost:8080/import/power?source=battery"
-curl "http://localhost:8080/import/gas?source=dynamic"
-curl "http://localhost:8080/import/gas?source=fixed"
+curl "http://localhost:8080/import/gas?source=dynamic&heating=boiler"
+curl "http://localhost:8080/import/gas?source=fixed&heating=boiler"
+curl "http://localhost:8080/import/gas?source=dynamic&heating=heatpump"
+curl "http://localhost:8080/import/gas?source=fixed&heating=heatpump"
 ```

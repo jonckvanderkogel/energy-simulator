@@ -14,7 +14,7 @@ import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 import java.time.LocalDateTime
 
-interface EsEntity {
+sealed interface EsEntity {
     val dateTime: LocalDateTime
     val amountConsumed: Double
     val cost: Double
@@ -40,7 +40,7 @@ data class ElasticPowerConsumptionEntity(
     @Field(type = FieldType.Keyword)
     override val energyType: EnergyType = POWER,
     @Field(type = FieldType.Keyword)
-    private val powerConsumptionType: PowerConsumptionType
+    val powerConsumptionType: PowerConsumptionType
 ) : EsEntity {
     constructor(
         dateTime: LocalDateTime,
@@ -115,29 +115,40 @@ fun GasConsumption.toElasticGasConsumption(
         contractType
     )
 
-enum class EnergySourceType {
-    FIXED, DYNAMIC, BATTERY;
+interface ParsableEnum<T : Enum<T>> {
+    val type: String
 
     companion object {
-        fun parseEnergySourceTypeString(energySourceType: String): Either<ApplicationErrors, EnergySourceType> =
+        inline fun <reified T> parse(enumValue: String): Either<ApplicationErrors, T> where T : Enum<T>, T : ParsableEnum<T> =
             try {
-                EnergySourceType.valueOf(energySourceType.uppercase()).right()
+                val enumConstant = enumValueOf<T>(enumValue.uppercase())
+                enumConstant.right()
             } catch (e: IllegalArgumentException) {
-                InvalidParameterError(energySourceType, "source").leftNel()
+                val type = enumValues<T>().firstOrNull()?.type ?: "unknown"
+                InvalidParameterError(enumValue, type).leftNel()
             }
     }
 }
 
-enum class HeatingType {
-    BOILER, HEATPUMP;
+enum class EnergySourceType(override val type: String) : ParsableEnum<EnergySourceType> {
+    FIXED("source"), DYNAMIC("source"), BATTERY("source");
 
-    companion object {
-        fun parseHeatingTypeString(heatingTypeString: String): Either<ApplicationErrors, HeatingType> =
-            try {
-                HeatingType.valueOf(heatingTypeString.uppercase()).right()
-            } catch (e: IllegalArgumentException) {
-                InvalidParameterError(heatingTypeString, "heat").leftNel()
-            }
+    companion object : ParsableEnum<EnergySourceType> {
+        override val type: String = "source"
+
+        fun parse(energySourceType: String): Either<ApplicationErrors, EnergySourceType> =
+            ParsableEnum.parse(energySourceType)
+    }
+}
+
+enum class HeatingType(override val type: String) : ParsableEnum<HeatingType> {
+    BOILER("heating"), HEATPUMP("heating");
+
+    companion object : ParsableEnum<HeatingType> {
+        override val type: String = "heating"
+
+        fun parse(heatingType: String): Either<ApplicationErrors, HeatingType> =
+            ParsableEnum.parse(heatingType)
     }
 }
 

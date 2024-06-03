@@ -3,6 +3,7 @@ package com.bullit.energysimulator.energysource
 import arrow.core.Either
 import arrow.core.flatMap
 import com.bullit.energysimulator.*
+import com.bullit.energysimulator.EnergySourceType.*
 import com.bullit.energysimulator.HeatingType.*
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
 import com.bullit.energysimulator.errorhandling.CouldNotCalculateMinimumPriceError
@@ -34,8 +35,9 @@ class Battery(
                         it
                     )
                 }
+
             is GasConsumption ->
-                when(heatingType) {
+                when (heatingType) {
                     BOILER -> underlyingContract.calculateCost(consumption, heatingType)
                     HEATPUMP -> powerTariffCache
                         .lowestPriceDayBefore(consumption.dateTime)
@@ -47,9 +49,28 @@ class Battery(
                             )
                         }
                 }
-
         }
+            .map {
+                convertForBattery(it)
+            }
 
+    private fun convertForBattery(esEntity: EsEntity): EsEntity =
+        when (esEntity) {
+            is ElasticPowerConsumptionEntity -> ElasticPowerConsumptionEntity(
+                esEntity.dateTime,
+                esEntity.amountConsumed,
+                esEntity.rate,
+                esEntity.cost,
+                BATTERY,
+                esEntity.powerConsumptionType
+            )
+            is ElasticGasConsumptionEntity -> ElasticGasConsumptionEntity(
+                esEntity.dateTime,
+                esEntity.amountConsumed,
+                esEntity.cost,
+                BATTERY
+            )
+        }
 
     private suspend fun AsyncLoadingCache<LocalDate, Either<ApplicationErrors, List<EnergyTariff>>>.lowestPriceDayBefore(
         dateTime: LocalDateTime
