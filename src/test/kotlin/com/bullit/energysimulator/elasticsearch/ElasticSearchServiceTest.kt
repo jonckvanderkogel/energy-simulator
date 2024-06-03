@@ -2,6 +2,7 @@ package com.bullit.energysimulator.elasticsearch
 
 import com.bullit.energysimulator.*
 import com.bullit.energysimulator.EnergySourceType.*
+import com.bullit.energysimulator.PowerConsumptionType.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -32,7 +33,8 @@ class ElasticSearchServiceTest(
             10.0,
             Rate.T1,
             10.0,
-            FIXED
+            FIXED,
+            GENERAL
         )
 
         val persisted = runBlocking {

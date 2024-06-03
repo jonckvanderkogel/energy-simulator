@@ -1,12 +1,14 @@
 package com.bullit.energysimulator.controller
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.raise.either
 import com.bullit.energysimulator.*
 import com.bullit.energysimulator.energysource.EnergySourceProvider
 import com.bullit.energysimulator.csv.gasFlow
 import com.bullit.energysimulator.csv.powerFlow
 import com.bullit.energysimulator.elasticsearch.ElasticsearchService
+import com.bullit.energysimulator.energysource.ContractConfiguration.*
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
 import com.bullit.energysimulator.errorhandling.MissingArgumentError
 import com.bullit.energysimulator.errorhandling.joinMessages
@@ -32,13 +34,13 @@ class HandlerConfiguration {
     fun powerHandler(
         elasticsearchService: ElasticsearchService,
         energySourceProvider: EnergySourceProvider,
-        @Value("\${files.power}") powerCsvName: String
+        @Value("\${files.power}") powerCsvName: String,
+        scop: SCOP
     ): PowerHandler {
         return PowerHandler(
             powerCsvName,
             ::powerFlow,
             energySourceProvider,
-            PowerConsumption::toElasticPowerConsumption,
             elasticsearchService::saveConsumption
         )
     }
@@ -47,13 +49,12 @@ class HandlerConfiguration {
     fun gasHandler(
         elasticsearchService: ElasticsearchService,
         energySourceProvider: EnergySourceProvider,
-        @Value("\${files.gas}") gasCsvName: String
+        @Value("\${files.gas}") gasCsvName: String,
     ): GasHandler {
         return GasHandler(
             gasCsvName,
             ::gasFlow,
             energySourceProvider,
-            GasConsumption::toElasticGasConsumption,
             elasticsearchService::saveConsumption
         )
     }
@@ -99,15 +100,14 @@ fun interface SearchHandler<S : EsEntity> {
     suspend fun search(request: ServerRequest): ServerResponse
 }
 
-abstract class RouteHandler<T : Consumption, S : EsEntity>(
+abstract class RouteHandler<T : Consumption>(
     private val csvName: String,
     private val flow: suspend (InputStream) -> Flow<T>,
     private val energySourceProvider: EnergySourceProvider,
-    private val transformFun: T.(Double, EnergySourceType) -> S,
-    private val esSave: suspend (S) -> Either<ApplicationErrors, S>
+    private val esSave: suspend (EsEntity) -> Either<ApplicationErrors, EsEntity>
 ) {
     suspend fun handleFlow(request: ServerRequest): ServerResponse =
-        parseEnergySourceType(request, energySourceProvider)
+        parseParameters(request, energySourceProvider)
             .fold(
                 ifLeft = { left ->
                     ServerResponse
@@ -115,15 +115,14 @@ abstract class RouteHandler<T : Consumption, S : EsEntity>(
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValueAndAwait(left.joinMessages())
                 },
-                ifRight = { (energySourceType, energySource) ->
+                ifRight = { (heatingType, energySource) ->
                     ServerResponse.ok().bodyValueAndAwait(
                         flow(streamCsv().invoke(csvName))
                             .map {
-                                either {
-                                    val cost = energySource.calculateCost(it).bind()
-                                    esSave(it.transformFun(cost, energySourceType)).bind()
-                                }
-
+                                energySource.calculateCost(it, heatingType)
+                                    .flatMap { entity ->
+                                        esSave(entity)
+                                    }
                             }
                             .fold(ConsumptionAccumulator()) { acc, either ->
                                 either.fold(
@@ -151,22 +150,20 @@ abstract class RouteHandler<T : Consumption, S : EsEntity>(
     }
 }
 
-class PowerHandler(
+class PowerHandler (
     powerCsvName: String,
     flow: suspend (InputStream) -> Flow<PowerConsumption>,
     energyContractProvider: EnergySourceProvider,
-    transformFun: (PowerConsumption, Double, EnergySourceType) -> ElasticPowerConsumptionEntity,
-    esSave: suspend (ElasticPowerConsumptionEntity) -> Either<ApplicationErrors, ElasticPowerConsumptionEntity>
-) : RouteHandler<PowerConsumption, ElasticPowerConsumptionEntity>(
-    powerCsvName, flow, energyContractProvider, transformFun, esSave
+    esSave: suspend (EsEntity) -> Either<ApplicationErrors, EsEntity>
+) : RouteHandler<PowerConsumption> (
+    powerCsvName, flow, energyContractProvider, esSave
 )
 
-class GasHandler(
+class GasHandler (
     gasCsvName: String,
     flow: suspend (InputStream) -> Flow<GasConsumption>,
-    energyContractProvider: EnergySourceProvider,
-    transformFun: (GasConsumption, Double, EnergySourceType) -> ElasticGasConsumptionEntity,
-    esSave: suspend (ElasticGasConsumptionEntity) -> Either<ApplicationErrors, ElasticGasConsumptionEntity>
-) : RouteHandler<GasConsumption, ElasticGasConsumptionEntity>(
-    gasCsvName, flow, energyContractProvider, transformFun, esSave
+    energySourceProvider: EnergySourceProvider,
+    esSave: suspend (EsEntity) -> Either<ApplicationErrors, EsEntity>
+) : RouteHandler<GasConsumption>(
+    gasCsvName, flow, energySourceProvider, esSave
 )

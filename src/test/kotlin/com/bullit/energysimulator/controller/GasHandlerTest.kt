@@ -26,7 +26,7 @@ class GasHandlerTest : AbstractIntegrationTest() {
     fun `should handle a gas csv with a fixed contract`() {
         webTestClient
             .get()
-            .uri("/import/gas?source=fixed")
+            .uri("/import/gas?source=fixed&heating=boiler")
             .exchange()
             .expectStatus().isOk
             .expectBody(AccumulatedConsumptionDTO::class.java)

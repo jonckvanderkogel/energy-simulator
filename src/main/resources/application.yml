@@ -8,13 +8,15 @@ files:
 contract:
   fixed:
     power:
-      t1: 0.22145
-      t2: 0.20935
-    gas: 0.99179
+      t1: 0.20929
+      t2: 0.22145
+    gas: 0.99235
 
 tax:
   power: 0.13165
   gas: 0.70544
+
+scop: 4.0
 
 easyEnergy:
   url: "https://mijn.easyenergy.com/nl/api/tariff"

@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.raise.either
 import com.bullit.energysimulator.EnergySourceType
 import com.bullit.energysimulator.EsEntity
+import com.bullit.energysimulator.HeatingType
 import com.bullit.energysimulator.energysource.EnergySource
 import com.bullit.energysimulator.energysource.EnergySourceProvider
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
@@ -112,17 +113,25 @@ data class AccumulatedConsumption(
     val totalCost: Double
 )
 
-internal fun parseEnergySourceType(
+internal fun parseParameters(
     request: ServerRequest,
     energySourceProvider: EnergySourceProvider
-): Either<ApplicationErrors, Pair<EnergySourceType, EnergySource>> = either {
-    val contractTypeParameter = request
+): Either<ApplicationErrors, Pair<HeatingType, EnergySource>> = either {
+    val energySourceTypeParameter = request
         .queryParam("source")
         .toEither { MissingArgumentError("source") }.bind()
 
     val contractType = EnergySourceType
-        .parseEnergySourceTypeString(contractTypeParameter)
+        .parseEnergySourceTypeString(energySourceTypeParameter)
         .bind()
 
-    contractType to energySourceProvider(contractType)
+    val heatingTypeParameter = request
+        .queryParam("heating")
+        .toEither { MissingArgumentError("heating") }.bind()
+
+    val heatingType = HeatingType
+        .parseHeatingTypeString(heatingTypeParameter)
+        .bind()
+
+    heatingType to energySourceProvider(contractType)
 }

@@ -32,8 +32,9 @@ class ContractConfiguration {
         @Value("\${contract.fixed.power.t1}") powerPriceT1: Double,
         @Value("\${contract.fixed.power.t2}") powerPriceT2: Double,
         @Value("\${contract.fixed.gas}") gasPrice: Double,
+        scop: SCOP
     ): FixedContract = FixedContract(
-        powerPriceT1, powerPriceT2, gasPrice
+        powerPriceT1, powerPriceT2, gasPrice, scop
     )
 
     @Bean
@@ -41,12 +42,10 @@ class ContractConfiguration {
         @Qualifier("powerTariffCache") powerTariffCache: AsyncLoadingCache<LocalDate, Either<ApplicationErrors, List<EnergyTariff>>>,
         @Qualifier("gasTariffCache") gasTariffCache: AsyncLoadingCache<LocalDate, Either<ApplicationErrors, List<EnergyTariff>>>,
         @Value("\${tax.power}") taxPower: Double,
-        @Value("\${tax.gas}") taxGas: Double
+        @Value("\${tax.gas}") taxGas: Double,
+        scop: SCOP
     ): DynamicContract = DynamicContract(
-        taxPower,
-        taxGas,
-        powerTariffCache,
-        gasTariffCache
+        taxPower, taxGas, scop, powerTariffCache, gasTariffCache
     )
 
     @Bean
@@ -56,7 +55,6 @@ class ContractConfiguration {
         dynamicContract: DynamicContract
     ): Battery = Battery(
         powerTariffCache,
-        taxPower,
         dynamicContract
     )
 
@@ -84,6 +82,14 @@ class ContractConfiguration {
         easyEnergyClient: EasyEnergyClient
     ): AsyncLoadingCache<LocalDate, Either<ApplicationErrors, List<EnergyTariff>>> =
         buildCache(easyEnergyClient::fetchGasPrices)
+
+    @Bean
+    fun scop(
+        @Value("\${scop}") scop: Double,
+    ): SCOP = SCOP(scop)
+
+    @JvmInline
+    value class SCOP(val scopValue: Double)
 
     private val scope = CoroutineScope(Dispatchers.IO)
 

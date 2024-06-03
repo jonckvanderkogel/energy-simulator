@@ -34,7 +34,7 @@ class BatteryHandlerTest(
     fun `should handle a power csv with a battery`() {
         webTestClient
             .get()
-            .uri("/import/power?source=battery")
+            .uri("/import/power?source=battery&heating=boiler")
             .exchange()
             .expectStatus().isOk
             .expectBody(AccumulatedConsumptionDTO::class.java)
@@ -51,6 +51,31 @@ class BatteryHandlerTest(
                     0.1728,
                     response.responseBody?.accumulatedConsumptions?.first()?.totalCost ?: 0.0,
                     0.0001
+                )
+            }
+    }
+
+    @Test
+    fun `should handle a gas csv with a heat pump`() {
+        webTestClient
+            .get()
+            .uri("/import/gas?source=battery&heating=heatpump")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody(AccumulatedConsumptionDTO::class.java)
+            .consumeWith { response ->
+                assertEquals(2, response.responseBody?.accumulatedConsumptions?.size)
+                assertEquals(3, response.responseBody?.accumulatedConsumptions?.first()?.month)
+                assertEquals(2024, response.responseBody?.accumulatedConsumptions?.first()?.year)
+                assertEquals(
+                    0.007,
+                    response.responseBody?.accumulatedConsumptions?.first()?.totalConsumption ?: 0.0,
+                    0.001
+                )
+                assertEquals(
+                    0.01,
+                    response.responseBody?.accumulatedConsumptions?.first()?.totalCost ?: 0.0,
+                    0.01
                 )
             }
     }

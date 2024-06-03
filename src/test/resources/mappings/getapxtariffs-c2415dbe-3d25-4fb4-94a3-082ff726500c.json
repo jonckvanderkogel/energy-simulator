@@ -1,5 +1,5 @@
 {
-  "id" : "4db50bd9-594d-4104-94f1-a3343a539950",
+  "id" : "c2415dbe-3d25-4fb4-94a3-082ff726500c",
   "name" : "getapxtariffs",
   "request" : {
     "url" : "/getapxtariffs?startTimestamp=2024-03-30T00:00:00.000Z&endTimestamp=2024-03-31T00:00:00.000Z&includeVat=true",
@@ -14,7 +14,7 @@
     "status" : 200,
     "body" : "[{\"Timestamp\":\"2024-03-30T00:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.070373600000000000,\"TariffReturn\":0.05816},{\"Timestamp\":\"2024-03-30T01:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.082413100000000000,\"TariffReturn\":0.06811},{\"Timestamp\":\"2024-03-30T02:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.079618000000000000,\"TariffReturn\":0.06580},{\"Timestamp\":\"2024-03-30T03:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.101640000000000000,\"TariffReturn\":0.08400},{\"Timestamp\":\"2024-03-30T04:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.078710500000000000,\"TariffReturn\":0.06505},{\"Timestamp\":\"2024-03-30T05:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.084566900000000000,\"TariffReturn\":0.06989},{\"Timestamp\":\"2024-03-30T06:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.087870200000000000,\"TariffReturn\":0.07262},{\"Timestamp\":\"2024-03-30T07:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.060500000000000000,\"TariffReturn\":0.05000},{\"Timestamp\":\"2024-03-30T08:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.065811900000000000,\"TariffReturn\":0.05439},{\"Timestamp\":\"2024-03-30T09:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.043741500000000000,\"TariffReturn\":0.03615},{\"Timestamp\":\"2024-03-30T10:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.030250000000000000,\"TariffReturn\":0.02500},{\"Timestamp\":\"2024-03-30T11:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.031145400000000000,\"TariffReturn\":0.02574},{\"Timestamp\":\"2024-03-30T12:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.015911500000000000,\"TariffReturn\":0.01315},{\"Timestamp\":\"2024-03-30T13:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.019202700000000000,\"TariffReturn\":0.01587},{\"Timestamp\":\"2024-03-30T14:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.044830500000000000,\"TariffReturn\":0.03705},{\"Timestamp\":\"2024-03-30T15:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.063549200000000000,\"TariffReturn\":0.05252},{\"Timestamp\":\"2024-03-30T16:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.095832000000000000,\"TariffReturn\":0.07920},{\"Timestamp\":\"2024-03-30T17:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.122573000000000000,\"TariffReturn\":0.10130},{\"Timestamp\":\"2024-03-30T18:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.157300000000000000,\"TariffReturn\":0.13000},{\"Timestamp\":\"2024-03-30T19:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.135036000000000000,\"TariffReturn\":0.11160},{\"Timestamp\":\"2024-03-30T20:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.097768000000000000,\"TariffReturn\":0.08080},{\"Timestamp\":\"2024-03-30T21:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.085704300000000000,\"TariffReturn\":0.07083},{\"Timestamp\":\"2024-03-30T22:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.079545400000000000,\"TariffReturn\":0.06574},{\"Timestamp\":\"2024-03-30T23:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.098990100000000000,\"TariffReturn\":0.08181}]",
     "headers" : {
-      "date" : "Sun, 26 May 2024 16:31:07 GMT",
+      "date" : "Mon, 03 Jun 2024 20:21:22 GMT",
       "server" : "nginx/1.18.0 (Ubuntu)",
       "expires" : "-1",
       "x-aspnet-version" : "4.0.30319",
@@ -29,7 +29,7 @@
       "cache-control" : "no-cache"
     }
   },
-  "uuid" : "4db50bd9-594d-4104-94f1-a3343a539950",
+  "uuid" : "c2415dbe-3d25-4fb4-94a3-082ff726500c",
   "persistent" : true,
   "insertionIndex" : 6
 }

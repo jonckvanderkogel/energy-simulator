@@ -57,8 +57,8 @@ class MissingArgumentError(argument: String) : AbstractApplicationError(
     message = "$argument is missing but is required"
 )
 
-class InvalidContractTypeError(argument: String) : AbstractApplicationError(
-    message = "$argument is not a valid contract type."
+class InvalidParameterError(argument: String, type: String) : AbstractApplicationError(
+    message = "$argument is not a valid value for parameter \"$type\""
 )
 
 class MissingTariffError(argument: LocalDateTime) : AbstractApplicationError(

@@ -5,7 +5,7 @@ import arrow.core.leftNel
 import arrow.core.right
 import com.bullit.energysimulator.EnergyType.*
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
-import com.bullit.energysimulator.errorhandling.InvalidContractTypeError
+import com.bullit.energysimulator.errorhandling.InvalidParameterError
 import com.fasterxml.jackson.annotation.JsonFormat
 import org.springframework.data.annotation.Id
 import org.springframework.data.elasticsearch.annotations.DateFormat
@@ -38,34 +38,40 @@ data class ElasticPowerConsumptionEntity(
     @Field(type = FieldType.Keyword)
     override val energySourceType: EnergySourceType,
     @Field(type = FieldType.Keyword)
-    override val energyType: EnergyType = POWER
+    override val energyType: EnergyType = POWER,
+    @Field(type = FieldType.Keyword)
+    private val powerConsumptionType: PowerConsumptionType
 ) : EsEntity {
     constructor(
         dateTime: LocalDateTime,
         amountConsumed: Double,
         rate: Rate,
         cost: Double,
-        energySourceType: EnergySourceType
+        energySourceType: EnergySourceType,
+        powerConsumptionType: PowerConsumptionType
     ) : this(
-        id = "$dateTime-$energySourceType",
+        id = "$dateTime-$energySourceType-$powerConsumptionType",
         dateTime = dateTime,
         amountConsumed = amountConsumed,
         rate = rate,
         cost = cost,
-        energySourceType = energySourceType
+        energySourceType = energySourceType,
+        powerConsumptionType = powerConsumptionType
     )
 }
 
 fun PowerConsumption.toElasticPowerConsumption(
     cost: Double,
-    contractType: EnergySourceType
+    contractType: EnergySourceType,
+    powerConsumptionType: PowerConsumptionType
 ): ElasticPowerConsumptionEntity =
     ElasticPowerConsumptionEntity(
         this.dateTime,
         this.amountConsumed,
         this.rate,
         cost,
-        contractType
+        contractType,
+        powerConsumptionType
     )
 
 @Document(indexName = "gas_consumption", createIndex = true)
@@ -113,13 +119,30 @@ enum class EnergySourceType {
     FIXED, DYNAMIC, BATTERY;
 
     companion object {
-        fun parseEnergySourceTypeString(contractTypeString: String): Either<ApplicationErrors, EnergySourceType> =
+        fun parseEnergySourceTypeString(energySourceType: String): Either<ApplicationErrors, EnergySourceType> =
             try {
-                EnergySourceType.valueOf(contractTypeString.uppercase()).right()
+                EnergySourceType.valueOf(energySourceType.uppercase()).right()
             } catch (e: IllegalArgumentException) {
-                InvalidContractTypeError("energySourceTypeString").leftNel()
+                InvalidParameterError(energySourceType, "source").leftNel()
             }
     }
+}
+
+enum class HeatingType {
+    BOILER, HEATPUMP;
+
+    companion object {
+        fun parseHeatingTypeString(heatingTypeString: String): Either<ApplicationErrors, HeatingType> =
+            try {
+                HeatingType.valueOf(heatingTypeString.uppercase()).right()
+            } catch (e: IllegalArgumentException) {
+                InvalidParameterError(heatingTypeString, "heat").leftNel()
+            }
+    }
+}
+
+enum class PowerConsumptionType {
+    GENERAL, HEATING
 }
 
 enum class EnergyType {

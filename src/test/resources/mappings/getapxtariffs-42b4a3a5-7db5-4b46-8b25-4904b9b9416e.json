@@ -1,0 +1,35 @@
+{
+  "id" : "42b4a3a5-7db5-4b46-8b25-4904b9b9416e",
+  "name" : "getapxtariffs",
+  "request" : {
+    "url" : "/getapxtariffs?startTimestamp=2024-04-01T00:00:00.000Z&endTimestamp=2024-04-02T00:00:00.000Z&includeVat=true",
+    "method" : "GET",
+    "headers" : {
+      "Accept" : {
+        "equalTo" : "application/json"
+      }
+    }
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "[{\"Timestamp\":\"2024-04-01T00:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.054571000000000000,\"TariffReturn\":0.04510},{\"Timestamp\":\"2024-04-01T01:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.052683400000000000,\"TariffReturn\":0.04354},{\"Timestamp\":\"2024-04-01T02:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.056337600000000000,\"TariffReturn\":0.04656},{\"Timestamp\":\"2024-04-01T03:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.063343500000000000,\"TariffReturn\":0.05235},{\"Timestamp\":\"2024-04-01T04:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.066864600000000000,\"TariffReturn\":0.05526},{\"Timestamp\":\"2024-04-01T05:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.072007100000000000,\"TariffReturn\":0.05951},{\"Timestamp\":\"2024-04-01T06:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.071039100000000000,\"TariffReturn\":0.05871},{\"Timestamp\":\"2024-04-01T07:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.073676900000000000,\"TariffReturn\":0.06089},{\"Timestamp\":\"2024-04-01T08:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.064081600000000000,\"TariffReturn\":0.05296},{\"Timestamp\":\"2024-04-01T09:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.058358300000000000,\"TariffReturn\":0.04823},{\"Timestamp\":\"2024-04-01T10:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.058987500000000000,\"TariffReturn\":0.04875},{\"Timestamp\":\"2024-04-01T11:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.000036300000000000,\"TariffReturn\":0.00003},{\"Timestamp\":\"2024-04-01T12:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":-0.000012100000000000,\"TariffReturn\":-0.00001},{\"Timestamp\":\"2024-04-01T13:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":-0.000012100000000000,\"TariffReturn\":-0.00001},{\"Timestamp\":\"2024-04-01T14:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":-0.000012100000000000,\"TariffReturn\":-0.00001},{\"Timestamp\":\"2024-04-01T15:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.007005900000000000,\"TariffReturn\":0.00579},{\"Timestamp\":\"2024-04-01T16:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.064130000000000000,\"TariffReturn\":0.05300},{\"Timestamp\":\"2024-04-01T17:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.108900000000000000,\"TariffReturn\":0.09000},{\"Timestamp\":\"2024-04-01T18:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.096666900000000000,\"TariffReturn\":0.07989},{\"Timestamp\":\"2024-04-01T19:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.067711600000000000,\"TariffReturn\":0.05596},{\"Timestamp\":\"2024-04-01T20:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.049610000000000000,\"TariffReturn\":0.04100},{\"Timestamp\":\"2024-04-01T21:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.035852300000000000,\"TariffReturn\":0.02963},{\"Timestamp\":\"2024-04-01T22:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.055817300000000000,\"TariffReturn\":0.04613},{\"Timestamp\":\"2024-04-01T23:00:00+00:00\",\"SupplierId\":0,\"TariffUsage\":0.043959300000000000,\"TariffReturn\":0.03633}]",
+    "headers" : {
+      "date" : "Mon, 03 Jun 2024 20:21:22 GMT",
+      "server" : "nginx/1.18.0 (Ubuntu)",
+      "expires" : "-1",
+      "x-aspnet-version" : "4.0.30319",
+      "vary" : "Accept-Encoding",
+      "strict-transport-security" : "max-age=31536000;includeSubDomains;preload",
+      "pragma" : "no-cache",
+      "x-content-type-options" : ": nosniff",
+      "x-xss-protection" : ": 1;mode=block",
+      "x-cache-status" : "MISS",
+      "x-powered-by" : "ASP.NET",
+      "content-type" : "application/json; charset=utf-8",
+      "cache-control" : "no-cache"
+    }
+  },
+  "uuid" : "42b4a3a5-7db5-4b46-8b25-4904b9b9416e",
+  "persistent" : true,
+  "insertionIndex" : 4
+}

@@ -30,7 +30,7 @@ class PowerHandlerTest : AbstractIntegrationTest() {
     fun `should handle a power csv with a fixed contract`() {
         webTestClient
             .get()
-            .uri("/import/power?source=fixed")
+            .uri("/import/power?source=fixed&heating=boiler")
             .exchange()
             .expectStatus().isOk
             .expectBody(AccumulatedConsumptionDTO::class.java)
@@ -44,7 +44,7 @@ class PowerHandlerTest : AbstractIntegrationTest() {
                     0.001
                 )
                 assertEquals(
-                    0.259,
+                    0.245,
                     response.responseBody?.accumulatedConsumptions?.first()?.totalCost ?: 0.0,
                     0.001
                 )
