@@ -36,4 +36,5 @@ curl "http://localhost:8080/import/gas?source=dynamic&heating=boiler"
 curl "http://localhost:8080/import/gas?source=fixed&heating=boiler"
 curl "http://localhost:8080/import/gas?source=dynamic&heating=heatpump"
 curl "http://localhost:8080/import/gas?source=fixed&heating=heatpump"
+curl "http://localhost:8080/import/gas?source=battery&heating=heatpump"
 ```
