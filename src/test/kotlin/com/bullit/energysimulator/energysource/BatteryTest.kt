@@ -1,7 +1,6 @@
 package com.bullit.energysimulator.energysource
 
 import com.bullit.energysimulator.*
-import com.bullit.energysimulator.HeatingType.*
 import com.bullit.energysimulator.wiremock.WireMockProxy
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -25,8 +24,7 @@ class BatteryTest(
                     LocalDateTime.of(2024, 1, 2, 15, 15),
                     10.0,
                     Rate.T1
-                ),
-                BOILER
+                )
             )
         }
         assertTrue(result.isRight())
@@ -36,7 +34,7 @@ class BatteryTest(
         // Total 0.1315895
         result
             .map {
-                assertEquals(1.315895, it.cost, 0.000001)
+                assertEquals(1.315895, it, 0.000001)
             }
     }
 
@@ -47,34 +45,14 @@ class BatteryTest(
                 GasConsumption(
                     LocalDateTime.of(2024, 1, 1, 11, 15),
                     10.0
-                ),
-                BOILER
+                )
             )
         }
         assertTrue(result.isRight())
 
         result
             .map {
-                assertEquals(10.8097, it.cost, 0.0001)
-            }
-    }
-
-    @Test
-    fun `should calculate cost for heat pump with dynamic power price`() {
-        val result = runBlocking {
-            battery.calculateCost(
-                GasConsumption(
-                    LocalDateTime.of(2024, 1, 2, 15, 15),
-                    10.0
-                ),
-                HEATPUMP
-            )
-        }
-        assertTrue(result.isRight())
-
-        result
-            .map {
-                assertEquals(2.902, it.cost, 0.001)
+                assertEquals(10.8097, it, 0.0001)
             }
     }
 }

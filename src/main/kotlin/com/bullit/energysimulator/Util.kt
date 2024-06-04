@@ -3,7 +3,7 @@ package com.bullit.energysimulator
 import arrow.core.*
 import com.bullit.energysimulator.errorhandling.AbstractApplicationError
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
-import com.bullit.energysimulator.errorhandling.MissingArgumentError
+import com.bullit.energysimulator.errorhandling.MissingParameterError
 import com.bullit.energysimulator.errorhandling.NoResponseError
 import kotlinx.coroutines.reactive.awaitFirstOrElse
 import org.slf4j.Logger
@@ -23,7 +23,7 @@ suspend inline fun <reified T> Mono<T>.toEither(crossinline errorFun: (throwable
             }
         }
 
-fun <T> Optional<T>.toEither(errorFun: () -> MissingArgumentError): Either<ApplicationErrors, T> =
+fun <T> Optional<T>.toEither(errorFun: () -> MissingParameterError): Either<ApplicationErrors, T> =
     if (isPresent) {
         this.get().right()
     } else {

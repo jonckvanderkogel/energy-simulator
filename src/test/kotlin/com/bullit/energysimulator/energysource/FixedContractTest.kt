@@ -1,7 +1,6 @@
 package com.bullit.energysimulator.energysource
 
 import com.bullit.energysimulator.*
-import com.bullit.energysimulator.HeatingType.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -23,15 +22,14 @@ class FixedContractTest(
                     LocalDateTime.of(2024, 1, 1, 11, 15),
                     10.0,
                     Rate.T1
-                ),
-                BOILER
+                )
             )
         }
         assertTrue(result.isRight())
 
         result
             .map {
-                assertEquals(2.0935, it.cost, 0.0001)
+                assertEquals(2.0935, it, 0.0001)
             }
     }
 
@@ -43,15 +41,14 @@ class FixedContractTest(
                     LocalDateTime.of(2024, 1, 1, 5, 45),
                     10.0,
                     Rate.T2
-                ),
-                BOILER
+                )
             )
         }
         assertTrue(result.isRight())
 
         result
             .map {
-                assertEquals(2.2145, it.cost, 0.0001)
+                assertEquals(2.2145, it, 0.0001)
             }
     }
 
@@ -62,34 +59,14 @@ class FixedContractTest(
                 GasConsumption(
                     LocalDateTime.of(2024, 1, 1, 5, 45),
                     10.0
-                ),
-                BOILER
+                )
             )
         }
         assertTrue(result.isRight())
 
         result
             .map {
-                assertEquals(9.9179, it.cost, 0.0001)
-            }
-    }
-
-    @Test
-    fun `should use power price for heat pump`() {
-        val result = runBlocking {
-            fixedContract.calculateCost(
-                GasConsumption(
-                    LocalDateTime.of(2024, 1, 1, 5, 45),
-                    10.0
-                ),
-                HEATPUMP
-            )
-        }
-        assertTrue(result.isRight())
-
-        result
-            .map {
-                assertEquals(4.616, it.cost, 0.001)
+                assertEquals(9.9179, it, 0.0001)
             }
     }
 }

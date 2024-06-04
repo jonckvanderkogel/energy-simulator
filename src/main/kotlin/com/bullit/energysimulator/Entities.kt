@@ -116,39 +116,32 @@ fun GasConsumption.toElasticGasConsumption(
     )
 
 interface ParsableEnum<T : Enum<T>> {
-    val type: String
-
     companion object {
-        inline fun <reified T> parse(enumValue: String): Either<ApplicationErrors, T> where T : Enum<T>, T : ParsableEnum<T> =
+        inline fun <reified T> parse(paramValue: String, paramName: String): Either<ApplicationErrors, T> where T : Enum<T>, T : ParsableEnum<T> =
             try {
-                val enumConstant = enumValueOf<T>(enumValue.uppercase())
+                val enumConstant = enumValueOf<T>(paramValue.uppercase())
                 enumConstant.right()
             } catch (e: IllegalArgumentException) {
-                val type = enumValues<T>().firstOrNull()?.type ?: "unknown"
-                InvalidParameterError(enumValue, type).leftNel()
+                InvalidParameterError(paramValue, paramName).leftNel()
             }
     }
 }
 
-enum class EnergySourceType(override val type: String) : ParsableEnum<EnergySourceType> {
-    FIXED("source"), DYNAMIC("source"), BATTERY("source");
+enum class EnergySourceType : ParsableEnum<EnergySourceType> {
+    FIXED, DYNAMIC, BATTERY;
 
     companion object : ParsableEnum<EnergySourceType> {
-        override val type: String = "source"
-
-        fun parse(energySourceType: String): Either<ApplicationErrors, EnergySourceType> =
-            ParsableEnum.parse(energySourceType)
+        fun parse(energySourceType: String, paramName: String): Either<ApplicationErrors, EnergySourceType> =
+            ParsableEnum.parse(energySourceType, paramName)
     }
 }
 
-enum class HeatingType(override val type: String) : ParsableEnum<HeatingType> {
-    BOILER("heating"), HEATPUMP("heating");
+enum class HeatingType : ParsableEnum<HeatingType> {
+    BOILER, HEATPUMP, NOT_HEATING;
 
     companion object : ParsableEnum<HeatingType> {
-        override val type: String = "heating"
-
-        fun parse(heatingType: String): Either<ApplicationErrors, HeatingType> =
-            ParsableEnum.parse(heatingType)
+        fun parse(heatingType: String, paramName: String): Either<ApplicationErrors, HeatingType> =
+            ParsableEnum.parse(heatingType, paramName)
     }
 }
 

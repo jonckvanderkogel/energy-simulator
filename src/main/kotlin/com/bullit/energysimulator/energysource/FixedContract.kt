@@ -3,8 +3,6 @@ package com.bullit.energysimulator.energysource
 import arrow.core.Either
 import arrow.core.right
 import com.bullit.energysimulator.*
-import com.bullit.energysimulator.EnergySourceType.FIXED
-import com.bullit.energysimulator.HeatingType.*
 import com.bullit.energysimulator.energysource.ContractConfiguration.SCOP
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
 import java.time.LocalDateTime
@@ -12,8 +10,7 @@ import java.time.LocalDateTime
 class FixedContract(
     private val powerPriceT1: Double,
     private val powerPriceT2: Double,
-    private val gasPrice: Double,
-    private val scop: SCOP
+    private val gasPrice: Double
 ) : EnergySource {
     private fun powerPrice(rate: Rate): Either<ApplicationErrors, Double> =
         when (rate) {
@@ -25,48 +22,10 @@ class FixedContract(
 
     override suspend fun calculateCost(
         consumption: Consumption,
-        heatingType: HeatingType,
         customPriceDateTime: LocalDateTime
-    ): Either<ApplicationErrors, EsEntity> =
+    ): Either<ApplicationErrors, Double> =
         when (consumption) {
-            is PowerConsumption -> powerPrice(consumption.rate)
-                .map {
-                    val cost = it * consumption.amountConsumed
-                    ElasticPowerConsumptionEntity(
-                        consumption.dateTime,
-                        consumption.amountConsumed,
-                        consumption.rate,
-                        cost,
-                        FIXED,
-                        PowerConsumptionType.GENERAL
-                    )
-                }
-            is GasConsumption ->
-                when (heatingType) {
-                    BOILER -> gasPrice()
-                        .map {
-                            val cost = it * consumption.amountConsumed
-                            ElasticGasConsumptionEntity(
-                                consumption.dateTime,
-                                consumption.amountConsumed,
-                                cost,
-                                FIXED
-                            )
-                        }
-                    HEATPUMP -> powerPrice(consumption.calculateRate())
-                        .map {
-                            val amountConsumed = consumption.amountConsumed.transformGasAmountForHeatPump(scop)
-                            val cost = it * amountConsumed
-                            ElasticPowerConsumptionEntity(
-                                consumption.dateTime,
-                                amountConsumed,
-                                consumption.calculateRate(),
-                                cost,
-                                FIXED,
-                                PowerConsumptionType.HEATING
-                            )
-                        }
-                }
-
+            is PowerConsumption -> powerPrice(consumption.rate).map { it * consumption.amountConsumed }
+            is GasConsumption -> gasPrice().map { it * consumption.amountConsumed }
         }
 }

@@ -10,7 +10,7 @@ import com.bullit.energysimulator.csv.powerFlow
 import com.bullit.energysimulator.elasticsearch.ElasticsearchService
 import com.bullit.energysimulator.energysource.ContractConfiguration.*
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
-import com.bullit.energysimulator.errorhandling.MissingArgumentError
+import com.bullit.energysimulator.errorhandling.MissingParameterError
 import com.bullit.energysimulator.errorhandling.joinMessages
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.fold
@@ -41,7 +41,8 @@ class HandlerConfiguration {
             powerCsvName,
             ::powerFlow,
             energySourceProvider,
-            elasticsearchService::saveConsumption
+            elasticsearchService::saveConsumption,
+            scop
         )
     }
 
@@ -50,12 +51,14 @@ class HandlerConfiguration {
         elasticsearchService: ElasticsearchService,
         energySourceProvider: EnergySourceProvider,
         @Value("\${files.gas}") gasCsvName: String,
+        scop: SCOP
     ): GasHandler {
         return GasHandler(
             gasCsvName,
             ::gasFlow,
             energySourceProvider,
-            elasticsearchService::saveConsumption
+            elasticsearchService::saveConsumption,
+            scop
         )
     }
 
@@ -66,11 +69,11 @@ class HandlerConfiguration {
         either {
             val gte = request.queryParam("gte")
                 .map { LocalDateTime.parse(it, DateTimeFormatter.ISO_LOCAL_DATE_TIME) }
-                .toEither { MissingArgumentError("gte") }.bind()
+                .toEither { MissingParameterError("gte") }.bind()
 
             val lte = request.queryParam("lte")
                 .map { LocalDateTime.parse(it, DateTimeFormatter.ISO_LOCAL_DATE_TIME) }
-                .toEither { MissingArgumentError("lte") }.bind()
+                .toEither { MissingParameterError("lte") }.bind()
 
             gte to lte
         }
@@ -104,7 +107,8 @@ abstract class RouteHandler<T : Consumption>(
     private val csvName: String,
     private val flow: suspend (InputStream) -> Flow<T>,
     private val energySourceProvider: EnergySourceProvider,
-    private val esSave: suspend (EsEntity) -> Either<ApplicationErrors, EsEntity>
+    private val esSave: suspend (EsEntity) -> Either<ApplicationErrors, EsEntity>,
+    private val scop: SCOP
 ) {
     suspend fun handleFlow(request: ServerRequest): ServerResponse =
         parseParameters(request, energySourceProvider)
@@ -115,13 +119,19 @@ abstract class RouteHandler<T : Consumption>(
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValueAndAwait(left.joinMessages())
                 },
-                ifRight = { (heatingType, energySource) ->
+                ifRight = { (heatingType, energySourceType, energySource) ->
                     ServerResponse.ok().bodyValueAndAwait(
                         flow(streamCsv().invoke(csvName))
                             .map {
-                                energySource.calculateCost(it, heatingType)
-                                    .flatMap { entity ->
-                                        esSave(entity)
+                                transformConsumption(it, heatingType, scop)
+                            }
+                            .map { consumption ->
+                                energySource.calculateCost(consumption)
+                                    .map { cost ->
+                                        generateEsEntity(heatingType, energySourceType, consumption, cost)
+                                    }
+                                    .flatMap {
+                                        esSave(it)
                                     }
                             }
                             .fold(ConsumptionAccumulator()) { acc, either ->
@@ -154,16 +164,18 @@ class PowerHandler (
     powerCsvName: String,
     flow: suspend (InputStream) -> Flow<PowerConsumption>,
     energyContractProvider: EnergySourceProvider,
-    esSave: suspend (EsEntity) -> Either<ApplicationErrors, EsEntity>
+    esSave: suspend (EsEntity) -> Either<ApplicationErrors, EsEntity>,
+    scop: SCOP
 ) : RouteHandler<PowerConsumption> (
-    powerCsvName, flow, energyContractProvider, esSave
+    powerCsvName, flow, energyContractProvider, esSave, scop
 )
 
 class GasHandler (
     gasCsvName: String,
     flow: suspend (InputStream) -> Flow<GasConsumption>,
     energySourceProvider: EnergySourceProvider,
-    esSave: suspend (EsEntity) -> Either<ApplicationErrors, EsEntity>
+    esSave: suspend (EsEntity) -> Either<ApplicationErrors, EsEntity>,
+    scop: SCOP
 ) : RouteHandler<GasConsumption>(
-    gasCsvName, flow, energySourceProvider, esSave
+    gasCsvName, flow, energySourceProvider, esSave, scop
 )

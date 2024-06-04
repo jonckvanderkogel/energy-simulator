@@ -34,7 +34,7 @@ class ContractConfiguration {
         @Value("\${contract.fixed.gas}") gasPrice: Double,
         scop: SCOP
     ): FixedContract = FixedContract(
-        powerPriceT1, powerPriceT2, gasPrice, scop
+        powerPriceT1, powerPriceT2, gasPrice
     )
 
     @Bean
@@ -45,7 +45,7 @@ class ContractConfiguration {
         @Value("\${tax.gas}") taxGas: Double,
         scop: SCOP
     ): DynamicContract = DynamicContract(
-        taxPower, taxGas, scop, powerTariffCache, gasTariffCache
+        taxPower, taxGas, powerTariffCache, gasTariffCache
     )
 
     @Bean

@@ -3,8 +3,6 @@ package com.bullit.energysimulator.energysource
 import arrow.core.Either
 import arrow.core.flatMap
 import com.bullit.energysimulator.*
-import com.bullit.energysimulator.EnergySourceType.*
-import com.bullit.energysimulator.HeatingType.*
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
 import com.bullit.energysimulator.errorhandling.CouldNotCalculateMinimumPriceError
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache
@@ -22,54 +20,19 @@ class Battery(
      */
     override suspend fun calculateCost(
         consumption: Consumption,
-        heatingType: HeatingType,
         customPriceDateTime: LocalDateTime
-    ): Either<ApplicationErrors, EsEntity> =
+    ): Either<ApplicationErrors, Double> =
         when (consumption) {
             is PowerConsumption -> powerTariffCache
                 .lowestPriceDayBefore(consumption.dateTime)
                 .flatMap {
                     underlyingContract.calculateCost(
                         consumption,
-                        heatingType,
                         it
                     )
                 }
 
-            is GasConsumption ->
-                when (heatingType) {
-                    BOILER -> underlyingContract.calculateCost(consumption, heatingType)
-                    HEATPUMP -> powerTariffCache
-                        .lowestPriceDayBefore(consumption.dateTime)
-                        .flatMap {
-                            underlyingContract.calculateCost(
-                                consumption,
-                                heatingType,
-                                it
-                            )
-                        }
-                }
-        }
-            .map {
-                convertForBattery(it)
-            }
-
-    private fun convertForBattery(esEntity: EsEntity): EsEntity =
-        when (esEntity) {
-            is ElasticPowerConsumptionEntity -> ElasticPowerConsumptionEntity(
-                esEntity.dateTime,
-                esEntity.amountConsumed,
-                esEntity.rate,
-                esEntity.cost,
-                BATTERY,
-                esEntity.powerConsumptionType
-            )
-            is ElasticGasConsumptionEntity -> ElasticGasConsumptionEntity(
-                esEntity.dateTime,
-                esEntity.amountConsumed,
-                esEntity.cost,
-                BATTERY
-            )
+            is GasConsumption -> underlyingContract.calculateCost(consumption)
         }
 
     private suspend fun AsyncLoadingCache<LocalDate, Either<ApplicationErrors, List<EnergyTariff>>>.lowestPriceDayBefore(
