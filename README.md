@@ -38,3 +38,12 @@ curl "http://localhost:8080/import/gas?source=dynamic&heating=heatpump"
 curl "http://localhost:8080/import/gas?source=fixed&heating=heatpump"
 curl "http://localhost:8080/import/gas?source=battery&heating=heatpump"
 ```
+
+## Import dashboards
+After running your simulations you can view your data in [Kibana](http://localhost:5601)
+
+To import the dashboards, click the three bars in the top-left of the Kibana screen, navigate to "Stack Management".
+There you can import the dashboards, select import and choose the file [ElasticEnergyCostsDashboards.ndjson](ElasticEnergyCostsDashboards.ndjson)
+
+Now you can see your data and make smart decisions about what is right for your energy needs in your home.
+![screenshot](DashboardsScreenshot.png)
