@@ -9,8 +9,10 @@ First, start the docker containers:
 docker compose up -d
 ```
 
-## Configure contract information
-Next, you need to set your config in application.yml. You need to set the prices for a fixed contract:
+## Configure your specific information
+Next, you need to set your config in application.yml. There are a few values you need to configure.
+
+You need to set the prices for a fixed contract:
 
 ```yaml
 contract:
@@ -19,6 +21,25 @@ contract:
       t1: 0.22145
       t2: 0.20935
     gas: 0.99179
+```
+
+You need to refer to the files where you have stored your power and gas data:
+```yaml
+files:
+  power: P1e-2024-3-19-2024-5-26.csv
+  gas: P1g-2024-3-19-2024-5-26.csv
+```
+
+You need to specify the amount of tax you are paying per kWh/m3:
+```yaml
+tax:
+  power: 0.13165
+  gas: 0.70544
+```
+
+And you need to specify the scop value of the heat pump you are potentially interested in placing:
+```yaml
+scop: 4.0
 ```
 
 ## Start the application
