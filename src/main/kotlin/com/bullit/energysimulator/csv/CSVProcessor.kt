@@ -12,6 +12,10 @@ fun interface ConsumptionCalculator<in T : RawCSVData, out R : Consumption> {
     fun calculateConsumption(previousRawData: T?, newRawData: T): R?
 }
 
+fun interface RawCSVParser<out T : RawCSVData> {
+    fun parseCSV(record: CSVRecord): T
+}
+
 class ConsumptionProcessor<in T : RawCSVData, out R : Consumption>
     (private val consumptionCalculator: ConsumptionCalculator<T, R>) {
 
@@ -22,10 +26,6 @@ class ConsumptionProcessor<in T : RawCSVData, out R : Consumption>
         this.previousData = newData
         return consumptionCalculator.calculateConsumption(previousData, newData)
     }
-}
-
-fun interface RawCSVParser<out T : RawCSVData> {
-    fun parseCSV(record: CSVRecord): T
 }
 
 suspend fun <T : RawCSVData> processCSV(

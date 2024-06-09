@@ -1,7 +1,7 @@
 # Energy simulator
 This project aims to take your energy consumption data and run what-if scenarios on it. So for
 example you could simulate if you have a home battery in place, a heat pump instead of your
-gas-powered heater and so forth.
+gas-powered heater and so forth. This simulation assumes data in the format of a [P1 meter from HomeWizard](https://www.homewizard.com/nl/p1-meter/).
 
 ## Set up runtime
 First, start the docker containers:
