@@ -1,6 +1,7 @@
 package com.bullit.energysimulator.controller
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.flatMap
 import arrow.core.raise.either
 import com.bullit.energysimulator.*
@@ -9,6 +10,7 @@ import com.bullit.energysimulator.csv.gasFlow
 import com.bullit.energysimulator.csv.powerFlow
 import com.bullit.energysimulator.elasticsearch.ElasticsearchService
 import com.bullit.energysimulator.energysource.ContractConfiguration.*
+import com.bullit.energysimulator.energysource.EnergySource
 import com.bullit.energysimulator.errorhandling.ApplicationErrors
 import com.bullit.energysimulator.errorhandling.MissingParameterError
 import com.bullit.energysimulator.errorhandling.joinMessages
@@ -114,63 +116,79 @@ abstract class RouteHandler<T : Consumption>(
         parseParameters(request, energySourceProvider)
             .fold(
                 ifLeft = { left ->
-                    ServerResponse
-                        .badRequest()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValueAndAwait(left.joinMessages())
+                    handleCorrectParametersNotPresent(left)
                 },
                 ifRight = { (heatingType, energySourceType, energySource) ->
-                    ServerResponse.ok().bodyValueAndAwait(
-                        flow(streamCsv().invoke(csvName))
-                            .map {
-                                transformConsumption(it, heatingType, scop)
-                            }
-                            .map { consumption ->
-                                energySource.calculateCost(consumption)
-                                    .map { cost ->
-                                        generateEsEntity(heatingType, energySourceType, consumption, cost)
-                                    }
-                                    .flatMap {
-                                        esSave(it)
-                                    }
-                            }
-                            .fold(ConsumptionAccumulator()) { acc, either ->
-                                either.fold(
-                                    ifLeft = { errors ->
-                                        acc.addError(
-                                            ErrorResponse(
-                                                errors.joinMessages(),
-                                                HttpStatus.BAD_REQUEST.value()
-                                            )
-                                        )
-                                    },
-                                    ifRight = {
-                                        acc.addConsumption(it)
-                                    }
-                                )
-                            }
-                            .compact()
-                            .toAccumulatedConsumptionDTO()
-                    )
+                    handleCorrectParametersPresent(heatingType, energySourceType, energySource)
                 }
             )
+
+    private suspend fun handleCorrectParametersNotPresent(
+        errors: ApplicationErrors
+    ): ServerResponse =
+        ServerResponse
+            .badRequest()
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValueAndAwait(errors.joinMessages())
+
+    private suspend fun handleCorrectParametersPresent(
+        heatingType: HeatingType,
+        energySourceType: EnergySourceType,
+        energySource: EnergySource
+    ): ServerResponse =
+        ServerResponse.ok().bodyValueAndAwait(
+            flow(streamCsv().invoke(csvName))
+                .map {
+                    transformConsumption(it, heatingType, scop)
+                }
+                .map { consumption ->
+                    energySource.calculateCost(consumption)
+                        .map { cost ->
+                            generateEsEntity(heatingType, energySourceType, consumption, cost)
+                        }
+                        .flatMap {
+                            esSave(it)
+                        }
+                }
+                .fold(ConsumptionAccumulator()) { acc, either ->
+                    either.fold(
+                        /*
+                        Note that even though this was a request with correct parameters, we can still have errors in the
+                        underlying calls to EasyEnergy for example. 
+                         */
+                        ifLeft = { errors ->
+                            acc.addError(
+                                ErrorResponse(
+                                    errors.joinMessages(),
+                                    HttpStatus.BAD_REQUEST.value()
+                                )
+                            )
+                        },
+                        ifRight = {
+                            acc.addConsumption(it)
+                        }
+                    )
+                }
+                .compact()
+                .toAccumulatedConsumptionDTO()
+        )
 
     private fun streamCsv(): (String) -> InputStream = { csvName ->
         javaClass.classLoader.getResourceAsStream(csvName)!!
     }
 }
 
-class PowerHandler (
+class PowerHandler(
     powerCsvName: String,
     flow: suspend (InputStream) -> Flow<PowerConsumption>,
     energyContractProvider: EnergySourceProvider,
     esSave: suspend (EsEntity) -> Either<ApplicationErrors, EsEntity>,
     scop: SCOP
-) : RouteHandler<PowerConsumption> (
+) : RouteHandler<PowerConsumption>(
     powerCsvName, flow, energyContractProvider, esSave, scop
 )
 
-class GasHandler (
+class GasHandler(
     gasCsvName: String,
     flow: suspend (InputStream) -> Flow<GasConsumption>,
     energySourceProvider: EnergySourceProvider,
